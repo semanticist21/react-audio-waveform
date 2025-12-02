@@ -1,25 +1,16 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Suspense } from "react";
-import { AudioWaveform } from "./index";
+import { AudioWaveform, AudioWaveformSuspense } from "./index";
 
-const meta = {
-  title: "Components/AudioWaveform",
-  component: AudioWaveform,
-  decorators: [
-    (Story) => (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="w-[600px] h-[200px]">
-          <Story />
-        </div>
-      </div>
-    ),
-  ],
-} satisfies Meta<typeof AudioWaveform>;
+// Shared configuration
+const commonDecorator = (Story: React.ComponentType) => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="w-[600px] h-[200px]">
+      <Story />
+    </div>
+  </div>
+);
 
-export default meta;
-type Story = StoryObj<typeof meta>;
-
-// Shared loader for all stories
 const audioLoader = [
   async () => {
     const response = await fetch("/sample-3min.mp3");
@@ -27,6 +18,19 @@ const audioLoader = [
     return { audioBlob: blob };
   },
 ];
+
+const meta = {
+  title: "Components/AudioWaveform",
+  component: AudioWaveform,
+  decorators: [commonDecorator],
+} satisfies Meta<typeof AudioWaveform>;
+
+export default meta;
+type Story = StoryObj<typeof meta>;
+
+// ============================================================================
+// Stories without Suspense
+// ============================================================================
 
 export const Dense: Story = {
   args: {
@@ -85,10 +89,13 @@ export const Sparse: Story = {
   },
 };
 
+// ============================================================================
+// Stories with Suspense
+// ============================================================================
+
 export const WithSuspense: Story = {
   args: {
     blob: null,
-    suspense: true,
   },
   loaders: audioLoader,
   render: (args, { loaded: { audioBlob } }) => {
@@ -103,7 +110,7 @@ export const WithSuspense: Story = {
           </div>
         }
       >
-        <AudioWaveform
+        <AudioWaveformSuspense
           {...args}
           blob={audioBlob}
           className="text-purple-500 size-full [--bar-width:3] [--bar-gap:1] [--bar-radius:1.5]"
