@@ -18,7 +18,7 @@ bun run lint:fix        # Fix linting issues with Biome
 bun run format          # Format code with Biome
 ```
 
-**Note:** Requires Node.js 22.12+ (Vite 7 requirement). Use `nvm use default` if needed.
+**Note:** Requires Node.js 20.19+ or 22.12+ (Vite 7 requirement). Use `nvm use default` if needed.
 
 ## Architecture
 
