@@ -220,14 +220,47 @@ export const RecordingWaveform = forwardRef<RecordingWaveformRef, RecordingWavef
       };
     }, [mediaRecorder, sampleInterval, analyserRef, dataArrayRef, bufferLengthRef]);
 
-    // Reset canvas when mediaRecorder is null
+    // Draw idle state (minimal bars) when mediaRecorder is null
     useEffect(() => {
-      if (!mediaRecorder && canvasRef.current) {
+      if (!mediaRecorder && canvasRef.current && containerRef.current) {
         const canvas = canvasRef.current;
+        const container = containerRef.current;
         const ctx = canvas.getContext("2d");
-        if (ctx) {
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (!ctx) return;
+
+        const dpr = window.devicePixelRatio || 1;
+        const containerHeight = container.clientHeight;
+        const containerWidth = container.clientWidth;
+
+        // Get CSS variables for bar styling
+        const computedStyle = getComputedStyle(canvas);
+        const barWidth = Number.parseInt(computedStyle.getPropertyValue("--bar-width") || "3", 10);
+        const gap = Number.parseInt(computedStyle.getPropertyValue("--bar-gap") || "1", 10);
+        const barRadius = Number.parseFloat(computedStyle.getPropertyValue("--bar-radius") || "1.5");
+
+        canvas.style.width = `${containerWidth}px`;
+        canvas.style.height = `${containerHeight}px`;
+        canvas.width = containerWidth * dpr;
+        canvas.height = containerHeight * dpr;
+        ctx.scale(dpr, dpr);
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw minimal bars as placeholder
+        const barColor = getComputedStyle(canvas).color;
+        ctx.fillStyle = barColor;
+        const minBarHeight = 2;
+        const totalBarWidth = barWidth + gap;
+        const barCount = Math.floor(containerWidth / totalBarWidth);
+
+        for (let i = 0; i < barCount; i++) {
+          const x = i * totalBarWidth;
+          const y = (containerHeight - minBarHeight) / 2;
+          ctx.beginPath();
+          ctx.roundRect(x, y, barWidth, minBarHeight, barRadius);
+          ctx.fill();
         }
+
         amplitudeDataRef.current = [];
       }
     }, [mediaRecorder]);
