@@ -4,8 +4,15 @@ import { useAudioRecorder } from "../recorder/use-audio-recorder";
 import rawSource from "./audio-player.stories.tsx?raw";
 
 function AudioPlayer() {
-  const { startRecording, stopRecording, pauseRecording, resumeRecording, mediaRecorder, isRecording, isPaused } =
-    useAudioRecorder();
+  const {
+    startRecording,
+    stopRecording: _,
+    pauseRecording,
+    resumeRecording,
+    mediaRecorder,
+    isRecording,
+    isPaused,
+  } = useAudioRecorder();
 
   const handleRecordClick = () => {
     if (!isRecording) {
