@@ -45,7 +45,7 @@ src/
 ## Code Conventions
 
 - **File naming:** kebab-case (e.g., `audio-waveform.tsx`, `use-audio-recorder.ts`)
-- **Commit messages:** Conventional commit format, title only
+- **Commit messages:** Conventional commit format, title only (no body, no "Generated with Claude" footer)
 
 ## Component API
 

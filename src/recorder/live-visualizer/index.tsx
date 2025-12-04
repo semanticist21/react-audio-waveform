@@ -1,5 +1,5 @@
 import { type ForwardedRef, forwardRef, useEffect, useImperativeHandle, useRef } from "react";
-import { useAudioAnalyser } from "./use-audio-analyser";
+import { useAudioAnalyser } from "../use-audio-analyser";
 
 export interface LiveAudioVisualizerProps {
   /**
