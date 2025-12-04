@@ -1,4 +1,5 @@
 import { type ForwardedRef, forwardRef, useEffect, useImperativeHandle, useRef } from "react";
+import { useAudioAnalyser } from "./use-audio-analyser";
 
 export interface LiveAudioVisualizerProps {
   /**
@@ -8,11 +9,20 @@ export interface LiveAudioVisualizerProps {
   /**
    * CSS class for styling. Use Tailwind classes:
    * - text-* for bar color (inherited via text-inherit)
+   * - bg-* for background color
    * - [--bar-width:N] for bar width in pixels
    * - [--bar-gap:N] for gap between bars in pixels
    * - [--bar-radius:N] for bar border radius in pixels
    */
   className?: string;
+  /**
+   * Inline styles including CSS custom properties for bar styling
+   */
+  style?: React.CSSProperties & {
+    "--bar-width"?: number;
+    "--bar-gap"?: number;
+    "--bar-radius"?: number;
+  };
   /**
    * FFT size for frequency analysis (must be power of 2)
    * @default 2048
@@ -26,17 +36,11 @@ export interface LiveAudioVisualizerProps {
 }
 
 export interface LiveAudioVisualizerRef {
-  /**
-   * Get the canvas element
-   */
+  /** Get the canvas element */
   getCanvas: () => HTMLCanvasElement | null;
-  /**
-   * Get the audio context
-   */
+  /** Get the audio context */
   getAudioContext: () => AudioContext | null;
-  /**
-   * Get the analyser node
-   */
+  /** Get the analyser node */
   getAnalyser: () => AnalyserNode | null;
 }
 
@@ -46,14 +50,17 @@ export interface LiveAudioVisualizerRef {
  */
 export const LiveAudioVisualizer = forwardRef<LiveAudioVisualizerRef, LiveAudioVisualizerProps>(
   (
-    { mediaRecorder, className = "", fftSize = 2048, smoothingTimeConstant = 0.8 },
+    { mediaRecorder, className = "", style, fftSize = 2048, smoothingTimeConstant = 0.8 },
     ref: ForwardedRef<LiveAudioVisualizerRef>
   ) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const audioContextRef = useRef<AudioContext | null>(null);
-    const analyserRef = useRef<AnalyserNode | null>(null);
     const animationRef = useRef<number | null>(null);
-    const dataArrayRef = useRef<Uint8Array | null>(null);
+
+    const { audioContextRef, analyserRef, dataArrayRef, bufferLengthRef } = useAudioAnalyser({
+      mediaRecorder,
+      fftSize,
+      smoothingTimeConstant,
+    });
 
     // Expose methods via ref
     useImperativeHandle(ref, () => ({
@@ -62,6 +69,7 @@ export const LiveAudioVisualizer = forwardRef<LiveAudioVisualizerRef, LiveAudioV
       getAnalyser: () => analyserRef.current,
     }));
 
+    // Animation loop for rendering
     useEffect(() => {
       if (!mediaRecorder || !canvasRef.current) {
         return;
@@ -74,114 +82,73 @@ export const LiveAudioVisualizer = forwardRef<LiveAudioVisualizerRef, LiveAudioV
       const gap = Number.parseInt(getComputedStyle(canvas).getPropertyValue("--bar-gap") || "1", 10);
       const barRadius = Number.parseInt(getComputedStyle(canvas).getPropertyValue("--bar-radius") || "1.5", 10);
 
-      // Setup Web Audio API
-      let audioContext: AudioContext | null = null;
-      let analyser: AnalyserNode | null = null;
-      let source: MediaStreamAudioSourceNode | null = null;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
 
-      try {
-        // Create audio context and analyser
-        audioContext = new AudioContext();
-        analyser = audioContext.createAnalyser();
-        analyser.fftSize = fftSize;
-        analyser.smoothingTimeConstant = smoothingTimeConstant;
+      const dpr = window.devicePixelRatio || 1;
 
-        audioContextRef.current = audioContext;
-        analyserRef.current = analyser;
+      const draw = () => {
+        const analyser = analyserRef.current;
+        const dataArray = dataArrayRef.current;
+        const bufferLength = bufferLengthRef.current;
 
-        // Get the MediaRecorder's stream and connect to analyser
-        const stream = mediaRecorder.stream;
-        source = audioContext.createMediaStreamSource(stream);
-        source.connect(analyser);
+        if (!analyser || !dataArray || !ctx) return;
 
-        // Create buffer for frequency data
-        const bufferLength = analyser.frequencyBinCount;
-        const dataArray = new Uint8Array(bufferLength);
-        dataArrayRef.current = dataArray;
+        // Get current canvas dimensions
+        const { width, height } = canvas.getBoundingClientRect();
+        canvas.width = width * dpr;
+        canvas.height = height * dpr;
+        ctx.scale(dpr, dpr);
 
-        // Get canvas context and setup
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
+        // Get time domain data (waveform)
+        analyser.getByteTimeDomainData(dataArray);
 
-        // Get device pixel ratio for sharp rendering
-        const dpr = window.devicePixelRatio || 1;
+        // Clear canvas
+        ctx.clearRect(0, 0, width, height);
 
-        // Animation loop
-        const draw = () => {
-          if (!analyser || !dataArray || !ctx) return;
+        // Calculate number of bars that fit
+        const totalBarWidth = barWidth + gap;
+        const numBars = Math.floor(width / totalBarWidth);
 
-          // Get current canvas dimensions
-          const { width, height } = canvas.getBoundingClientRect();
-          canvas.width = width * dpr;
-          canvas.height = height * dpr;
-          ctx.scale(dpr, dpr);
+        // Get bar color from text-inherit
+        const barColor = getComputedStyle(canvas).color;
+        ctx.fillStyle = barColor;
 
-          // Get time domain data (waveform)
-          analyser.getByteTimeDomainData(dataArray);
+        // Draw bars
+        for (let i = 0; i < numBars; i++) {
+          const dataIndex = Math.floor((i / numBars) * bufferLength);
+          const value = dataArray[dataIndex] || 0;
 
-          // Clear canvas
-          ctx.clearRect(0, 0, width, height);
+          // Convert byte value (0-255) to height, center around 128 (silence)
+          const amplitude = Math.abs(value - 128) / 128;
+          const barHeight = Math.max(2, amplitude * height);
 
-          // Calculate number of bars that fit
-          const totalBarWidth = barWidth + gap;
-          const numBars = Math.floor(width / totalBarWidth);
+          const x = i * totalBarWidth;
+          const y = (height - barHeight) / 2;
 
-          // Get bar color from text-inherit
-          const barColor = getComputedStyle(canvas).color;
-          ctx.fillStyle = barColor;
+          ctx.beginPath();
+          ctx.roundRect(x, y, barWidth, barHeight, barRadius);
+          ctx.fill();
+        }
 
-          // Draw bars
-          for (let i = 0; i < numBars; i++) {
-            // Sample from the data array
-            const dataIndex = Math.floor((i / numBars) * bufferLength);
-            const value = dataArray[dataIndex] || 0;
+        animationRef.current = requestAnimationFrame(draw);
+      };
 
-            // Convert byte value (0-255) to height
-            // Center around 128 (silence) and scale
-            const amplitude = Math.abs(value - 128) / 128;
-            const barHeight = Math.max(2, amplitude * height);
-
-            // Calculate position
-            const x = i * totalBarWidth;
-            const y = (height - barHeight) / 2;
-
-            // Draw rounded rectangle
-            ctx.beginPath();
-            ctx.roundRect(x, y, barWidth, barHeight, barRadius);
-            ctx.fill();
-          }
-
-          animationRef.current = requestAnimationFrame(draw);
-        };
-
-        // Start animation
+      // Start animation after a short delay to ensure analyser is ready
+      const timeoutId = setTimeout(() => {
         draw();
-      } catch (error) {
-        console.error("Failed to setup audio visualization:", error);
-      }
+      }, 50);
 
-      // Cleanup
       return () => {
+        clearTimeout(timeoutId);
         if (animationRef.current) {
           cancelAnimationFrame(animationRef.current);
           animationRef.current = null;
         }
-
-        if (source) {
-          source.disconnect();
-        }
-
-        if (audioContext && audioContext.state !== "closed") {
-          audioContext.close();
-        }
-
-        audioContextRef.current = null;
-        analyserRef.current = null;
-        dataArrayRef.current = null;
       };
-    }, [mediaRecorder, fftSize, smoothingTimeConstant]);
+    }, [mediaRecorder, analyserRef, dataArrayRef, bufferLengthRef]);
 
-    return <canvas ref={canvasRef} className={`text-inherit ${className}`} />;
+    return <canvas ref={canvasRef} className={`text-inherit ${className}`} style={style} />;
   }
 );
 

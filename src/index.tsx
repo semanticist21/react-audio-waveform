@@ -4,7 +4,11 @@
 
 export type { LiveAudioVisualizerProps, LiveAudioVisualizerRef } from "./recorder/live-audio-visualizer";
 export { LiveAudioVisualizer } from "./recorder/live-audio-visualizer";
-// Recording components (for live recording)
+export type { RecordingWaveformProps, RecordingWaveformRef } from "./recorder/recording-waveform";
+export { RecordingWaveform } from "./recorder/recording-waveform";
+// Recording hooks
+export type { UseAudioAnalyserConfig, UseAudioAnalyserReturn } from "./recorder/use-audio-analyser";
+export { useAudioAnalyser } from "./recorder/use-audio-analyser";
 export type { UseAudioRecorderConfig, UseAudioRecorderReturn } from "./recorder/use-audio-recorder";
 export { useAudioRecorder } from "./recorder/use-audio-recorder";
 // Waveform components (for playback visualization)

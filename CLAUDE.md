@@ -30,7 +30,9 @@ src/
 │   ├── util-audio-decoder.ts # Web Audio API decoding
 │   └── util-suspense.ts      # React Suspense cache
 └── recorder/              # Live recording components
-    ├── live-audio-visualizer.tsx  # Real-time frequency visualization
+    ├── live-audio-visualizer.tsx  # Real-time frequency bars
+    ├── recording-waveform.tsx     # Timeline waveform (grows over time)
+    ├── use-audio-analyser.ts      # Shared Web Audio setup hook
     └── use-audio-recorder.ts      # MediaRecorder hook
 ```
 
@@ -52,12 +54,21 @@ src/
 - `className`: Tailwind classes (`text-*` for bar color, `bg-*` for background)
 - `style`: CSS variables for bar customization (`--bar-width`, `--bar-gap`, `--bar-radius`)
 
-**LiveAudioVisualizer** - Real-time recording visualization:
-- `mediaRecorder`: MediaRecorder instance from `useAudioRecorder`
-- `className`: Same Tailwind pattern as AudioWaveform
+**LiveAudioVisualizer** - Real-time frequency bars during recording:
+- `mediaRecorder`: MediaRecorder instance (from `useAudioRecorder` or standard API)
+- `className`, `style`: Same Tailwind/CSS variable pattern as AudioWaveform
+
+**RecordingWaveform** - Timeline waveform that grows as recording progresses (Voice Memos style):
+- `mediaRecorder`: MediaRecorder instance
+- `className`, `style`: Same pattern as other components
+- `sampleInterval`: How often to sample amplitude (default: 50ms)
 
 **useAudioRecorder** - Recording hook:
-- Returns: `{ startRecording, stopRecording, mediaRecorder, recordingBlob, isRecording, error }`
+- Returns: `{ startRecording, stopRecording, mediaRecorder, recordingBlob, isRecording, recordingTime, error }`
+
+**useAudioAnalyser** - Shared Web Audio setup (used internally by both visualizers):
+- Creates AudioContext, AnalyserNode, connects MediaRecorder stream
+- Returns refs for audioContext, analyser, dataArray, bufferLength
 
 ## Key Implementation Details
 
