@@ -109,6 +109,7 @@ export const useAudioRecorder = (config: UseAudioRecorderConfig = {}): UseAudioR
         onRecordingComplete?.(blob);
         setIsRecording(false);
         setIsPaused(false);
+        setMediaRecorder(null);
 
         // Clean up stream
         if (streamRef.current) {

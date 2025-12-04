@@ -201,26 +201,45 @@ export const RecordingWaveform = forwardRef<RecordingWaveformRef, RecordingWavef
         animationRef.current = requestAnimationFrame(draw);
       };
 
-      // Start sampling and animation after a short delay to ensure analyser is ready
-      const timeoutId = setTimeout(() => {
-        samplingIntervalRef.current = window.setInterval(sampleAmplitude, sampleInterval);
-        draw();
-      }, 50);
-
-      return () => {
-        clearTimeout(timeoutId);
-        if (animationRef.current) {
-          cancelAnimationFrame(animationRef.current);
-          animationRef.current = null;
+      const startSampling = () => {
+        if (!samplingIntervalRef.current) {
+          samplingIntervalRef.current = window.setInterval(sampleAmplitude, sampleInterval);
         }
+      };
+
+      const stopSampling = () => {
         if (samplingIntervalRef.current) {
           clearInterval(samplingIntervalRef.current);
           samplingIntervalRef.current = null;
         }
       };
+
+      // Handle pause/resume events
+      const handlePause = () => stopSampling();
+      const handleResume = () => startSampling();
+
+      mediaRecorder.addEventListener("pause", handlePause);
+      mediaRecorder.addEventListener("resume", handleResume);
+
+      // Start sampling and animation after a short delay to ensure analyser is ready
+      const timeoutId = setTimeout(() => {
+        startSampling();
+        draw();
+      }, 50);
+
+      return () => {
+        clearTimeout(timeoutId);
+        mediaRecorder.removeEventListener("pause", handlePause);
+        mediaRecorder.removeEventListener("resume", handleResume);
+        if (animationRef.current) {
+          cancelAnimationFrame(animationRef.current);
+          animationRef.current = null;
+        }
+        stopSampling();
+      };
     }, [mediaRecorder, sampleInterval, analyserRef, dataArrayRef, bufferLengthRef]);
 
-    // Draw idle state (minimal bars) when mediaRecorder is null
+    // Draw stopped state (keep existing waveform or show idle bars)
     useEffect(() => {
       if (!mediaRecorder && canvasRef.current && containerRef.current) {
         const canvas = canvasRef.current;
@@ -238,30 +257,58 @@ export const RecordingWaveform = forwardRef<RecordingWaveformRef, RecordingWavef
         const gap = Number.parseInt(computedStyle.getPropertyValue("--bar-gap") || "1", 10);
         const barRadius = Number.parseFloat(computedStyle.getPropertyValue("--bar-radius") || "1.5");
 
-        canvas.style.width = `${containerWidth}px`;
-        canvas.style.height = `${containerHeight}px`;
-        canvas.width = containerWidth * dpr;
-        canvas.height = containerHeight * dpr;
-        ctx.scale(dpr, dpr);
-
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-        // Draw minimal bars as placeholder
-        const barColor = getComputedStyle(canvas).color;
-        ctx.fillStyle = barColor;
-        const minBarHeight = 2;
+        const amplitudeData = amplitudeDataRef.current;
         const totalBarWidth = barWidth + gap;
-        const barCount = Math.floor(containerWidth / totalBarWidth);
 
-        for (let i = 0; i < barCount; i++) {
-          const x = i * totalBarWidth;
-          const y = (containerHeight - minBarHeight) / 2;
-          ctx.beginPath();
-          ctx.roundRect(x, y, barWidth, minBarHeight, barRadius);
-          ctx.fill();
+        // If we have recorded data, draw it (stopped state)
+        if (amplitudeData.length > 0) {
+          const requiredWidth = amplitudeData.length * totalBarWidth;
+
+          canvas.style.width = `${Math.max(requiredWidth, containerWidth)}px`;
+          canvas.style.height = `${containerHeight}px`;
+          canvas.width = Math.max(requiredWidth, containerWidth) * dpr;
+          canvas.height = containerHeight * dpr;
+          ctx.scale(dpr, dpr);
+
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+          const barColor = getComputedStyle(canvas).color;
+          ctx.fillStyle = barColor;
+          const minBarHeight = 2;
+          const height = containerHeight;
+
+          for (let i = 0; i < amplitudeData.length; i++) {
+            const amplitude = amplitudeData[i];
+            const barHeight = Math.max(minBarHeight, amplitude * height * 0.9);
+            const x = i * totalBarWidth;
+            const y = (height - barHeight) / 2;
+            ctx.beginPath();
+            ctx.roundRect(x, y, barWidth, barHeight, barRadius);
+            ctx.fill();
+          }
+        } else {
+          // No data - draw idle state (minimal bars)
+          canvas.style.width = `${containerWidth}px`;
+          canvas.style.height = `${containerHeight}px`;
+          canvas.width = containerWidth * dpr;
+          canvas.height = containerHeight * dpr;
+          ctx.scale(dpr, dpr);
+
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+          const barColor = getComputedStyle(canvas).color;
+          ctx.fillStyle = barColor;
+          const minBarHeight = 2;
+          const barCount = Math.floor(containerWidth / totalBarWidth);
+
+          for (let i = 0; i < barCount; i++) {
+            const x = i * totalBarWidth;
+            const y = (containerHeight - minBarHeight) / 2;
+            ctx.beginPath();
+            ctx.roundRect(x, y, barWidth, minBarHeight, barRadius);
+            ctx.fill();
+          }
         }
-
-        amplitudeDataRef.current = [];
       }
     }, [mediaRecorder]);
 

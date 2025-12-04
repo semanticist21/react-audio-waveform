@@ -86,8 +86,14 @@ export const LiveAudioVisualizer = forwardRef<LiveAudioVisualizerRef, LiveAudioV
       if (!ctx) return;
 
       const dpr = window.devicePixelRatio || 1;
+      let isPaused = false;
 
       const draw = () => {
+        if (isPaused) {
+          animationRef.current = requestAnimationFrame(draw);
+          return;
+        }
+
         const analyser = analyserRef.current;
         const dataArray = dataArrayRef.current;
         const bufferLength = bufferLengthRef.current;
@@ -134,6 +140,17 @@ export const LiveAudioVisualizer = forwardRef<LiveAudioVisualizerRef, LiveAudioV
         animationRef.current = requestAnimationFrame(draw);
       };
 
+      // Handle pause/resume events
+      const handlePause = () => {
+        isPaused = true;
+      };
+      const handleResume = () => {
+        isPaused = false;
+      };
+
+      mediaRecorder.addEventListener("pause", handlePause);
+      mediaRecorder.addEventListener("resume", handleResume);
+
       // Start animation after a short delay to ensure analyser is ready
       const timeoutId = setTimeout(() => {
         draw();
@@ -141,6 +158,8 @@ export const LiveAudioVisualizer = forwardRef<LiveAudioVisualizerRef, LiveAudioV
 
       return () => {
         clearTimeout(timeoutId);
+        mediaRecorder.removeEventListener("pause", handlePause);
+        mediaRecorder.removeEventListener("resume", handleResume);
         if (animationRef.current) {
           cancelAnimationFrame(animationRef.current);
           animationRef.current = null;
