@@ -6,23 +6,23 @@ import rawSource from "./live-recorder-player.stories.tsx?raw";
 function LiveRecorderPlayer() {
   const { startRecording, stopRecording, pauseRecording, resumeRecording, mediaRecorder, isRecording, isPaused } =
     useAudioRecorder({
-      // 브라우저별 자동 분기: Safari는 audio/mp4, Chrome/Firefox는 audio/webm 사용
+      // Auto browser detection: Safari uses audio/mp4, Chrome/Firefox uses audio/webm
       mimeType: () => {
         if (MediaRecorder.isTypeSupported("audio/mp4")) {
           return "audio/mp4"; // Safari
         }
         return "audio/webm"; // Chrome, Firefox, Edge
       },
-      // 문자열로 직접 지정하는 방식 (커스텀 로직 불필요한 경우)
+      // Direct string specification (when custom logic is not needed)
       // mimeType: "audio/webm",
       onRecordingComplete: (audioBlob) => {
-        // 녹음이 완료되면 Blob URL을 생성하여 새 탭에서 재생
+        // When recording completes, create Blob URL and play in new tab
         const audioUrl = URL.createObjectURL(audioBlob);
         window.open(audioUrl, "_blank");
       },
     });
 
-  // 녹음 시작/일시정지/재개 버튼 핸들러
+  // Recording start/pause/resume button handler
   const handleRecordClick = () => {
     if (!isRecording) {
       startRecording();
@@ -36,20 +36,20 @@ function LiveRecorderPlayer() {
   return (
     <div className="flex h-screen w-full items-center justify-center bg-slate-100">
       <div className="flex h-24 w-fit items-center gap-4 rounded-2xl bg-white px-5 shadow-lg">
-        {/* 녹음/일시정지 버튼 */}
+        {/* Record/pause button */}
         <button
           type="button"
           onClick={handleRecordClick}
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white shadow-md"
         >
           {!isRecording ? (
-            // 녹음 시작: 빨간 원
+            // Start recording: red circle
             <div className="h-4 w-4 rounded-full bg-red-500" />
           ) : isPaused ? (
-            // 일시정지 상태에서 재개: 빨간 원
+            // Resume from pause: red circle
             <div className="h-4 w-4 rounded-full bg-red-500" />
           ) : (
-            // 녹음 중 일시정지: 두 개의 세로 막대
+            // Pause during recording: two vertical bars
             <div className="flex gap-0.5">
               <div className="h-4 w-1 rounded-sm bg-orange-500" />
               <div className="h-4 w-1 rounded-sm bg-orange-500" />
@@ -57,13 +57,13 @@ function LiveRecorderPlayer() {
           )}
         </button>
 
-        {/* 실시간 주파수 바 표시 영역 */}
+        {/* Real-time frequency bar display area */}
         <LiveAudioVisualizer
           mediaRecorder={mediaRecorder}
           className="h-12 w-88 rounded-lg bg-slate-100 text-green-500"
         />
 
-        {/* 정지 버튼 */}
+        {/* Stop button */}
         <button
           type="button"
           onClick={stopRecording}

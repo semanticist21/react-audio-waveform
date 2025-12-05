@@ -6,17 +6,17 @@ import rawSource from "./live-streaming-recorder-player.stories.tsx?raw";
 function LiveStreamingRecorderPlayer() {
   const { startRecording, stopRecording, pauseRecording, resumeRecording, mediaRecorder, isRecording, isPaused } =
     useAudioRecorder({
-      // 브라우저별 자동 분기: Safari는 audio/mp4, Chrome/Firefox는 audio/webm 사용
+      // Auto browser detection: Safari uses audio/mp4, Chrome/Firefox uses audio/webm
       mimeType: () => {
         if (MediaRecorder.isTypeSupported("audio/mp4")) {
           return "audio/mp4"; // Safari
         }
         return "audio/webm"; // Chrome, Firefox, Edge
       },
-      // 문자열로 직접 지정하는 방식 (커스텀 로직 불필요한 경우)
+      // Direct string specification (when custom logic is not needed)
       // mimeType: "audio/webm",
       onRecordingComplete: (audioBlob) => {
-        // 녹음이 완료되면 Blob URL을 생성하여 새 탭에서 재생
+        // When recording completes, create Blob URL and play in new tab
         const audioUrl = URL.createObjectURL(audioBlob);
         window.open(audioUrl, "_blank");
       },

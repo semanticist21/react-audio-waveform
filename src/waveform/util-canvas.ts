@@ -1,31 +1,31 @@
 /**
- * Canvas bar 스타일을 CSS 변수에서 읽어오는 유틸리티
+ * Utility to read canvas bar styles from CSS variables
  */
 export interface CanvasBarStyles {
-  /** Bar의 너비 (픽셀) */
+  /** Bar width (pixels) */
   barWidth: number;
-  /** Bar 사이의 간격 (픽셀) */
+  /** Gap between bars (pixels) */
   gap: number;
-  /** Bar의 border radius (픽셀) */
+  /** Bar border radius (pixels) */
   barRadius: number;
-  /** Bar의 color (CSS color 값) */
+  /** Bar color (CSS color value) */
   barColor: string;
 }
 
 /**
- * Bar 스타일을 직접 prop으로 전달할 때 사용하는 타입
+ * Type used when passing bar styles directly as props
  */
 export interface BarStyle {
-  /** Bar의 너비 (픽셀 또는 CSS 값) */
+  /** Bar width (pixels or CSS value) */
   width?: string | number;
-  /** Bar 사이의 간격 (픽셀 또는 CSS 값) */
+  /** Gap between bars (pixels or CSS value) */
   gap?: string | number;
-  /** Bar의 border radius (픽셀 또는 CSS 값) */
+  /** Bar border radius (pixels or CSS value) */
   radius?: string | number;
 }
 
 /**
- * Bar 렌더링 설정 (스타일 + 높이 스케일)
+ * Bar rendering configuration (style + height scale)
  */
 export interface BarConfig extends BarStyle {
   /** Bar height scale (0.0 - 1.0). Default 0.9 leaves 10% vertical padding */
@@ -33,15 +33,15 @@ export interface BarConfig extends BarStyle {
 }
 
 /**
- * Canvas 요소로부터 bar 스타일 설정을 읽어옴
- * @param canvas - 스타일을 읽을 canvas 요소 (color 추출용)
- * @param barStyle - 직접 전달된 bar 스타일 (optional, 기본값 사용)
- * @returns bar 렌더링에 필요한 스타일 설정
+ * Read bar style settings from canvas element
+ * @param canvas - Canvas element to read styles from (for color extraction)
+ * @param barStyle - Directly passed bar style (optional, uses defaults)
+ * @returns Style settings needed for bar rendering
  */
 export function getCanvasBarStyles(canvas: HTMLCanvasElement, barStyle?: BarStyle): CanvasBarStyles {
   const style = getComputedStyle(canvas);
 
-  // barStyle prop에서 값 추출, 없으면 기본값 사용
+  // Extract values from barStyle prop, use defaults if not present
   const barWidth = barStyle?.width
     ? typeof barStyle.width === "number"
       ? barStyle.width

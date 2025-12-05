@@ -4,10 +4,10 @@ import { getDefaultMimeType } from "./util-mime-type";
 export interface UseAudioRecorderConfig {
   /**
    * MIME type for the recording
-   * - string: 직접 MIME 타입 지정 (e.g., 'audio/webm', 'audio/mp4')
-   * - function: 커스텀 로직으로 MIME 타입 선택 (브라우저 분기 등)
-   * - undefined: 브라우저별 자동 선택 (Safari: audio/mp4, Others: audio/webm)
-   * @default getDefaultMimeType() - 브라우저별 자동 선택
+   * - string: Directly specify MIME type (e.g., 'audio/webm', 'audio/mp4')
+   * - function: Select MIME type with custom logic (browser detection, etc.)
+   * - undefined: Auto-select by browser (Safari: audio/mp4, Others: audio/webm)
+   * @default getDefaultMimeType() - Auto-select by browser
    */
   mimeType?: string | (() => string);
   /**
@@ -53,7 +53,7 @@ export interface UseAudioRecorderReturn {
 export const useAudioRecorder = (config: UseAudioRecorderConfig = {}): UseAudioRecorderReturn => {
   const { mimeType, audioConstraints = true, onRecordingComplete } = config;
 
-  // mimeType 처리: 함수면 실행, 문자열이면 그대로 사용, undefined면 기본값
+  // Handle mimeType: execute if function, use as-is if string, use default if undefined
   const resolvedMimeType =
     typeof mimeType === "function" ? mimeType() : mimeType !== undefined ? mimeType : getDefaultMimeType();
 

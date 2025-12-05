@@ -12,7 +12,7 @@ export interface WaveformRendererProps {
   className?: string;
   /** Inline styles for the canvas */
   style?: React.CSSProperties;
-  /** Bar 스타일 (width, gap, radius) */
+  /** Bar style (width, gap, radius) */
   barStyle?: BarStyle;
 }
 
@@ -53,7 +53,7 @@ export const WaveformRenderer = forwardRef<WaveformRendererRef, WaveformRenderer
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, width, height);
 
-    // Read bar styles from barStyle prop (기본값: width=3, gap=1, radius=1.5)
+    // Read bar styles from barStyle prop (defaults: width=3, gap=1, radius=1.5)
     const barWidth = barStyle?.width
       ? typeof barStyle.width === "number"
         ? barStyle.width

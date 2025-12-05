@@ -52,7 +52,7 @@ export interface AudioWaveformCanvasProps extends HTMLAttributes<HTMLCanvasEleme
   style?: React.CSSProperties;
   /** Bar height scale (0.0 - 1.0). Controls maximum bar height relative to container (default: 0.9) */
   barHeightScale?: number;
-  /** Bar 스타일 (width, gap, radius) */
+  /** Bar style (width, gap, radius) */
   barStyle?: BarStyle;
 }
 
@@ -98,7 +98,7 @@ const AudioWaveformCanvas = forwardRef<HTMLCanvasElement, AudioWaveformCanvasPro
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, width, height);
 
-    // Read bar styles from barStyle prop (기본값: width=3, gap=1, radius=1.5)
+    // Read bar styles from barStyle prop (defaults: width=3, gap=1, radius=1.5)
     const barWidth = barStyle?.width
       ? typeof barStyle.width === "number"
         ? barStyle.width
