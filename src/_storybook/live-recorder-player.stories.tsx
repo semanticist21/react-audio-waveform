@@ -6,15 +6,6 @@ import { useAudioRecorder } from "../recorder/use-audio-recorder";
 function LiveRecorderPlayer() {
   const { startRecording, stopRecording, pauseRecording, resumeRecording, mediaRecorder, isRecording, isPaused } =
     useAudioRecorder({
-      // Auto browser detection: Safari uses audio/mp4, Chrome/Firefox uses audio/webm
-      mimeType: () => {
-        if (MediaRecorder.isTypeSupported("audio/mp4")) {
-          return "audio/mp4"; // Safari
-        }
-        return "audio/webm"; // Chrome, Firefox, Edge
-      },
-      // Direct string specification (when custom logic is not needed)
-      // mimeType: "audio/webm",
       onRecordingComplete: (audioBlob) => {
         // When recording completes, create Blob URL and play in new tab
         const audioUrl = URL.createObjectURL(audioBlob);
@@ -84,14 +75,7 @@ function LiveRecorderPlayerWithPlay() {
     recordingBlob,
     isRecording,
     isPaused,
-  } = useAudioRecorder({
-    mimeType: () => {
-      if (MediaRecorder.isTypeSupported("audio/mp4")) {
-        return "audio/mp4";
-      }
-      return "audio/webm";
-    },
-  });
+  } = useAudioRecorder();
 
   const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -168,14 +152,7 @@ function LiveRecorderPlayerWithDownload() {
     recordingBlob,
     isRecording,
     isPaused,
-  } = useAudioRecorder({
-    mimeType: () => {
-      if (MediaRecorder.isTypeSupported("audio/mp4")) {
-        return "audio/mp4";
-      }
-      return "audio/webm";
-    },
-  });
+  } = useAudioRecorder();
 
   const handleRecordClick = () => {
     if (!isRecording) {
@@ -269,12 +246,6 @@ export const Default: Story = {
         code: `function LiveRecorderPlayer() {
   const { startRecording, stopRecording, pauseRecording, resumeRecording, mediaRecorder, isRecording, isPaused } =
     useAudioRecorder({
-      mimeType: () => {
-        if (MediaRecorder.isTypeSupported("audio/mp4")) {
-          return "audio/mp4"; // Safari
-        }
-        return "audio/webm"; // Chrome, Firefox, Edge
-      },
       onRecordingComplete: (audioBlob) => {
         const audioUrl = URL.createObjectURL(audioBlob);
         window.open(audioUrl, "_blank");
@@ -297,7 +268,15 @@ export const Default: Story = {
         <button type="button" onClick={handleRecordClick}>
           {/* Record/pause button UI */}
         </button>
-        <LiveRecorder mediaRecorder={mediaRecorder} />
+
+        {/* Real-time frequency bar visualization */}
+        <LiveRecorder
+          mediaRecorder={mediaRecorder}
+          className="h-12 w-88 rounded-lg bg-slate-100 text-slate-600"
+          // bg-slate-100: canvas background color
+          // text-slate-600: bar color (inherited via text-inherit)
+        />
+
         <button type="button" onClick={stopRecording} disabled={!isRecording}>
           {/* Stop button UI */}
         </button>
@@ -325,14 +304,7 @@ export const WithPlay: StoryObj<typeof LiveRecorderPlayerWithPlay> = {
     recordingBlob,
     isRecording,
     isPaused,
-  } = useAudioRecorder({
-    mimeType: () => {
-      if (MediaRecorder.isTypeSupported("audio/mp4")) {
-        return "audio/mp4";
-      }
-      return "audio/webm";
-    },
-  });
+  } = useAudioRecorder();
 
   const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -377,14 +349,7 @@ export const WithDownload: StoryObj<typeof LiveRecorderPlayerWithDownload> = {
     recordingBlob,
     isRecording,
     isPaused,
-  } = useAudioRecorder({
-    mimeType: () => {
-      if (MediaRecorder.isTypeSupported("audio/mp4")) {
-        return "audio/mp4";
-      }
-      return "audio/webm";
-    },
-  });
+  } = useAudioRecorder();
 
   // Download button click handler
   const handleDownload = () => {

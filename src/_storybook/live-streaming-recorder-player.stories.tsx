@@ -6,15 +6,6 @@ import { useAudioRecorder } from "../recorder/use-audio-recorder";
 function LiveStreamingRecorderPlayer() {
   const { startRecording, stopRecording, pauseRecording, resumeRecording, mediaRecorder, isRecording, isPaused } =
     useAudioRecorder({
-      // Auto browser detection: Safari uses audio/mp4, Chrome/Firefox uses audio/webm
-      mimeType: () => {
-        if (MediaRecorder.isTypeSupported("audio/mp4")) {
-          return "audio/mp4"; // Safari
-        }
-        return "audio/webm"; // Chrome, Firefox, Edge
-      },
-      // Direct string specification (when custom logic is not needed)
-      // mimeType: "audio/webm",
       onRecordingComplete: (audioBlob) => {
         // When recording completes, create Blob URL and play in new tab
         const audioUrl = URL.createObjectURL(audioBlob);
@@ -58,9 +49,11 @@ function LiveStreamingRecorderPlayer() {
         </button>
 
         {/* Waveform display area with scrolling container */}
-        <div className="h-12 w-72 overflow-x-auto overflow-y-hidden rounded-lg bg-slate-100 [scrollbar-width:thin]">
-          <LiveStreamingRecorder mediaRecorder={mediaRecorder} className="h-full text-slate-600" />
-        </div>
+        <LiveStreamingRecorder.Root mediaRecorder={mediaRecorder}>
+          <LiveStreamingRecorder.Container className="h-12 w-72 overflow-x-auto overflow-y-hidden rounded-lg bg-slate-100 [scrollbar-width:thin]">
+            <LiveStreamingRecorder.Canvas className="w-full h-full text-slate-600" />
+          </LiveStreamingRecorder.Container>
+        </LiveStreamingRecorder.Root>
 
         {/* Stop button */}
         <button
@@ -86,14 +79,7 @@ function LiveStreamingRecorderPlayerWithPlay() {
     recordingBlob,
     isRecording,
     isPaused,
-  } = useAudioRecorder({
-    mimeType: () => {
-      if (MediaRecorder.isTypeSupported("audio/mp4")) {
-        return "audio/mp4";
-      }
-      return "audio/webm";
-    },
-  });
+  } = useAudioRecorder();
 
   const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -136,9 +122,11 @@ function LiveStreamingRecorderPlayerWithPlay() {
           )}
         </button>
 
-        <div className="h-12 w-72 overflow-x-auto overflow-y-hidden rounded-lg bg-slate-100 [scrollbar-width:thin]">
-          <LiveStreamingRecorder mediaRecorder={mediaRecorder} className="h-full text-slate-600" />
-        </div>
+        <LiveStreamingRecorder.Root mediaRecorder={mediaRecorder}>
+          <LiveStreamingRecorder.Container className="h-12 w-72 overflow-x-auto overflow-y-hidden rounded-lg bg-slate-100 [scrollbar-width:thin]">
+            <LiveStreamingRecorder.Canvas className="w-full h-full text-slate-600" />
+          </LiveStreamingRecorder.Container>
+        </LiveStreamingRecorder.Root>
 
         <button
           type="button"
@@ -172,14 +160,7 @@ function LiveStreamingRecorderPlayerWithDownload() {
     recordingBlob,
     isRecording,
     isPaused,
-  } = useAudioRecorder({
-    mimeType: () => {
-      if (MediaRecorder.isTypeSupported("audio/mp4")) {
-        return "audio/mp4";
-      }
-      return "audio/webm";
-    },
-  });
+  } = useAudioRecorder();
 
   const handleRecordClick = () => {
     if (!isRecording) {
@@ -225,9 +206,11 @@ function LiveStreamingRecorderPlayerWithDownload() {
           )}
         </button>
 
-        <div className="h-12 w-72 overflow-x-auto overflow-y-hidden rounded-lg bg-slate-100 [scrollbar-width:thin]">
-          <LiveStreamingRecorder mediaRecorder={mediaRecorder} className="h-full text-slate-600" />
-        </div>
+        <LiveStreamingRecorder.Root mediaRecorder={mediaRecorder}>
+          <LiveStreamingRecorder.Container className="h-12 w-72 overflow-x-auto overflow-y-hidden rounded-lg bg-slate-100 [scrollbar-width:thin]">
+            <LiveStreamingRecorder.Canvas className="w-full h-full text-slate-600" />
+          </LiveStreamingRecorder.Container>
+        </LiveStreamingRecorder.Root>
 
         <button
           type="button"
@@ -275,12 +258,6 @@ export const Default: Story = {
         code: `function LiveStreamingRecorderPlayer() {
   const { startRecording, stopRecording, pauseRecording, resumeRecording, mediaRecorder, isRecording, isPaused } =
     useAudioRecorder({
-      mimeType: () => {
-        if (MediaRecorder.isTypeSupported("audio/mp4")) {
-          return "audio/mp4"; // Safari
-        }
-        return "audio/webm"; // Chrome, Firefox, Edge
-      },
       onRecordingComplete: (audioBlob) => {
         const audioUrl = URL.createObjectURL(audioBlob);
         window.open(audioUrl, "_blank");
@@ -303,7 +280,18 @@ export const Default: Story = {
         <button type="button" onClick={handleRecordClick}>
           {/* Record/pause button UI */}
         </button>
-        <LiveStreamingRecorder mediaRecorder={mediaRecorder} />
+
+        {/* Timeline waveform visualization with scrolling container */}
+        <LiveStreamingRecorder.Root mediaRecorder={mediaRecorder}>
+          <LiveStreamingRecorder.Container className="h-12 w-72 overflow-x-auto overflow-y-hidden rounded-lg bg-slate-100 [scrollbar-width:thin]">
+            {/* bg-slate-100: scrolling container background */}
+            <LiveStreamingRecorder.Canvas
+              className="w-full h-full text-slate-600"
+              // text-slate-600: bar color (inherited via text-inherit)
+            />
+          </LiveStreamingRecorder.Container>
+        </LiveStreamingRecorder.Root>
+
         <button type="button" onClick={stopRecording} disabled={!isRecording}>
           {/* Stop button UI */}
         </button>
@@ -331,14 +319,7 @@ export const WithPlay: StoryObj<typeof LiveStreamingRecorderPlayerWithPlay> = {
     recordingBlob,
     isRecording,
     isPaused,
-  } = useAudioRecorder({
-    mimeType: () => {
-      if (MediaRecorder.isTypeSupported("audio/mp4")) {
-        return "audio/mp4";
-      }
-      return "audio/webm";
-    },
-  });
+  } = useAudioRecorder();
 
   const audioRef = useRef<HTMLAudioElement>(null);
 
@@ -383,14 +364,7 @@ export const WithDownload: StoryObj<typeof LiveStreamingRecorderPlayerWithDownlo
     recordingBlob,
     isRecording,
     isPaused,
-  } = useAudioRecorder({
-    mimeType: () => {
-      if (MediaRecorder.isTypeSupported("audio/mp4")) {
-        return "audio/mp4";
-      }
-      return "audio/webm";
-    },
-  });
+  } = useAudioRecorder();
 
   // Download button click handler
   const handleDownload = () => {

@@ -32,4 +32,23 @@ export type { BarConfig, BarStyle } from "./waveform/util-canvas.js";
 export type { LiveRecorderProps, LiveRecorderRef } from "./recorder/live-recorder/index.js";
 export { LiveRecorder } from "./recorder/live-recorder/index.js";
 export type { LiveStreamingRecorderProps, LiveStreamingRecorderRef } from "./recorder/live-streaming-recorder/index.js";
-export { LiveStreamingRecorder } from "./recorder/live-streaming-recorder/index.js";
+export { LiveStreamingRecorder as LiveStreamingRecorderLegacy } from "./recorder/live-streaming-recorder/index.js";
+
+// ============================================================================
+// Compound Components
+// ============================================================================
+
+export type {
+  LiveStreamingRecorderCanvasProps,
+  LiveStreamingRecorderContainerProps,
+  LiveStreamingRecorderRootProps,
+} from "./recorder/live-streaming-recorder/live-streaming-recorder-compound.js";
+// LiveStreamingRecorder compound component
+export { LiveStreamingRecorder } from "./recorder/live-streaming-recorder/live-streaming-recorder-compound.js";
+export type {
+  AudioWaveformCanvasProps,
+  AudioWaveformContainerProps,
+  AudioWaveformRootProps,
+} from "./waveform/audio-waveform-compound.js";
+// AudioWaveform compound component
+export { AudioWaveform } from "./waveform/audio-waveform-compound.js";
