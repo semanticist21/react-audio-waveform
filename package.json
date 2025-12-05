@@ -33,7 +33,9 @@
     "check": "biome check . && tsgo --noEmit",
     "fix": "biome check --write .",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "prepublishOnly": "bun run check && bun run build",
+    "release": "npm publish --access public"
   },
   "engines": {
     "node": ">=20.19.0 || >=22.12.0"

@@ -14,6 +14,7 @@ export default defineConfig({
     dts({
       include: ["src"],
       exclude: ["src/_storybook/**"],
+      rollupTypes: true,
     }),
   ],
   build: {
