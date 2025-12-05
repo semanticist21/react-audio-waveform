@@ -5,7 +5,22 @@ import rawSource from "./live-streaming-recorder-player.stories.tsx?raw";
 
 function LiveStreamingRecorderPlayer() {
   const { startRecording, stopRecording, pauseRecording, resumeRecording, mediaRecorder, isRecording, isPaused } =
-    useAudioRecorder();
+    useAudioRecorder({
+      // 브라우저별 자동 분기: Safari는 audio/mp4, Chrome/Firefox는 audio/webm 사용
+      mimeType: () => {
+        if (MediaRecorder.isTypeSupported("audio/mp4")) {
+          return "audio/mp4"; // Safari
+        }
+        return "audio/webm"; // Chrome, Firefox, Edge
+      },
+      // 문자열로 직접 지정하는 방식 (커스텀 로직 불필요한 경우)
+      // mimeType: "audio/webm",
+      onRecordingComplete: (audioBlob) => {
+        // 녹음이 완료되면 Blob URL을 생성하여 새 탭에서 재생
+        const audioUrl = URL.createObjectURL(audioBlob);
+        window.open(audioUrl, "_blank");
+      },
+    });
 
   // Recording start/pause/resume button handler
   const handleRecordClick = () => {

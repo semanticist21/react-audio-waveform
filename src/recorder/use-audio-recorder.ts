@@ -1,11 +1,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { getDefaultMimeType } from "./util-mime-type";
 
 export interface UseAudioRecorderConfig {
   /**
-   * MIME type for the recording (e.g., 'audio/webm', 'audio/mp4')
-   * @default 'audio/webm'
+   * MIME type for the recording
+   * - string: 직접 MIME 타입 지정 (e.g., 'audio/webm', 'audio/mp4')
+   * - function: 커스텀 로직으로 MIME 타입 선택 (브라우저 분기 등)
+   * - undefined: 브라우저별 자동 선택 (Safari: audio/mp4, Others: audio/webm)
+   * @default getDefaultMimeType() - 브라우저별 자동 선택
    */
-  mimeType?: string;
+  mimeType?: string | (() => string);
   /**
    * Audio constraints for getUserMedia
    * @default true
@@ -47,7 +51,11 @@ export interface UseAudioRecorderReturn {
  * Based on react-audio-visualize patterns
  */
 export const useAudioRecorder = (config: UseAudioRecorderConfig = {}): UseAudioRecorderReturn => {
-  const { mimeType = "audio/webm", audioConstraints = true, onRecordingComplete } = config;
+  const { mimeType, audioConstraints = true, onRecordingComplete } = config;
+
+  // mimeType 처리: 함수면 실행, 문자열이면 그대로 사용, undefined면 기본값
+  const resolvedMimeType =
+    typeof mimeType === "function" ? mimeType() : mimeType !== undefined ? mimeType : getDefaultMimeType();
 
   const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const [recordingBlob, setRecordingBlob] = useState<Blob | null>(null);
@@ -65,7 +73,7 @@ export const useAudioRecorder = (config: UseAudioRecorderConfig = {}): UseAudioR
   const isRecordingRef = useRef(false);
   const isPausedRef = useRef(false);
 
-  // Stateto refsync with
+  // Sync state to refs
   useEffect(() => {
     mediaRecorderRef.current = mediaRecorder;
     isRecordingRef.current = isRecording;
@@ -103,9 +111,9 @@ export const useAudioRecorder = (config: UseAudioRecorderConfig = {}): UseAudioR
       });
       streamRef.current = stream;
 
-      // Create MediaRecorder
+      // Create MediaRecorder with browser-compatible MIME type
       const recorder = new MediaRecorder(stream, {
-        mimeType: MediaRecorder.isTypeSupported(mimeType) ? mimeType : "audio/webm",
+        mimeType: MediaRecorder.isTypeSupported(resolvedMimeType) ? resolvedMimeType : getDefaultMimeType(),
       });
 
       recorder.ondataavailable = (event) => {
@@ -147,17 +155,17 @@ export const useAudioRecorder = (config: UseAudioRecorderConfig = {}): UseAudioR
       setError(error);
       console.error("Failed to start recording:", error);
     }
-  }, [mimeType, audioConstraints, onRecordingComplete]);
+  }, [resolvedMimeType, audioConstraints, onRecordingComplete]);
 
   const stopRecording = useCallback(() => {
-    // refto reference latest values (Stabilize dependency array)
+    // Use ref to reference latest values (Stabilize dependency array)
     if (mediaRecorderRef.current && isRecordingRef.current) {
       mediaRecorderRef.current.stop();
     }
   }, []);
 
   const pauseRecording = useCallback(() => {
-    // refto reference latest values (Stabilize dependency array)
+    // Use ref to reference latest values (Stabilize dependency array)
     if (mediaRecorderRef.current && isRecordingRef.current && !isPausedRef.current) {
       mediaRecorderRef.current.pause();
       setIsPaused(true);
@@ -165,7 +173,7 @@ export const useAudioRecorder = (config: UseAudioRecorderConfig = {}): UseAudioR
   }, []);
 
   const resumeRecording = useCallback(() => {
-    // refto reference latest values (Stabilize dependency array)
+    // Use ref to reference latest values (Stabilize dependency array)
     if (mediaRecorderRef.current && isRecordingRef.current && isPausedRef.current) {
       mediaRecorderRef.current.resume();
       setIsPaused(false);
@@ -173,7 +181,7 @@ export const useAudioRecorder = (config: UseAudioRecorderConfig = {}): UseAudioR
   }, []);
 
   const clearRecording = useCallback(() => {
-    // refto reference latest values (Stabilize dependency array)
+    // Use ref to reference latest values (Stabilize dependency array)
     if (mediaRecorderRef.current && isRecordingRef.current) {
       mediaRecorderRef.current.stop();
     }
