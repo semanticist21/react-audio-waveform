@@ -1,5 +1,6 @@
 import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
 import { decodeAudioBlob, getAudioData } from "./util-audio-decoder";
+import type { BarConfig } from "./util-canvas";
 import { unwrapPromise } from "./util-suspense";
 import { WaveformRenderer, type WaveformRendererRef } from "./waveform-renderer";
 
@@ -12,12 +13,8 @@ export interface AudioWaveformProps {
   blob: Blob | null;
   /** Additional class name for the canvas */
   className?: string;
-  /** Inline styles for the canvas (supports CSS variables for bar customization) */
-  style?: React.CSSProperties & {
-    "--bar-width"?: string | number;
-    "--bar-gap"?: string | number;
-    "--bar-radius"?: string | number;
-  };
+  /** Bar styling configuration */
+  barConfig?: BarConfig;
   /** Enable Suspense mode (requires Suspense boundary in parent) */
   suspense?: boolean;
 }
@@ -27,7 +24,7 @@ export interface AudioWaveformRef {
 }
 
 export const AudioWaveform = forwardRef<AudioWaveformRef, AudioWaveformProps>(function AudioWaveform(
-  { blob, className, style, suspense = false },
+  { blob, className, barConfig, suspense = false },
   ref
 ) {
   const [peaks, setPeaks] = useState<number[] | null>(null);
@@ -90,7 +87,7 @@ export const AudioWaveform = forwardRef<AudioWaveformRef, AudioWaveformProps>(fu
 
   const finalPeaks = suspense ? suspensePeaks : peaks;
 
-  return <WaveformRenderer ref={rendererRef} peaks={finalPeaks} className={className} style={style} />;
+  return <WaveformRenderer ref={rendererRef} peaks={finalPeaks} className={className} barConfig={barConfig} />;
 });
 
 export default AudioWaveform;

@@ -1,5 +1,5 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef } from "react";
-import type { BarStyle } from "./util-canvas";
+import type { BarConfig } from "./util-canvas";
 
 // ============================================================================
 // Common Waveform Renderer (A)
@@ -10,10 +10,8 @@ export interface WaveformRendererProps {
   peaks: number[] | null;
   /** Additional class name for the canvas */
   className?: string;
-  /** Inline styles for the canvas */
-  style?: React.CSSProperties;
-  /** Bar style (width, gap, radius) */
-  barStyle?: BarStyle;
+  /** Bar styling configuration */
+  barConfig?: BarConfig;
 }
 
 export interface WaveformRendererRef {
@@ -21,7 +19,7 @@ export interface WaveformRendererRef {
 }
 
 export const WaveformRenderer = forwardRef<WaveformRendererRef, WaveformRendererProps>(function WaveformRenderer(
-  { peaks, className = "", style, barStyle },
+  { peaks, className = "", barConfig },
   ref
 ) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -53,18 +51,23 @@ export const WaveformRenderer = forwardRef<WaveformRendererRef, WaveformRenderer
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, width, height);
 
-    // Read bar styles from barStyle prop (defaults: width=3, gap=1, radius=1.5)
-    const barWidth = barStyle?.width
-      ? typeof barStyle.width === "number"
-        ? barStyle.width
-        : Number.parseFloat(barStyle.width)
+    // Read bar styles from barConfig prop (defaults: width=3, gap=1, radius=1.5)
+    const barWidth = barConfig?.width
+      ? typeof barConfig.width === "number"
+        ? barConfig.width
+        : Number.parseFloat(barConfig.width)
       : 3;
-    const gap = barStyle?.gap ? (typeof barStyle.gap === "number" ? barStyle.gap : Number.parseFloat(barStyle.gap)) : 1;
-    const barRadius = barStyle?.radius
-      ? typeof barStyle.radius === "number"
-        ? barStyle.radius
-        : Number.parseFloat(barStyle.radius)
+    const gap = barConfig?.gap
+      ? typeof barConfig.gap === "number"
+        ? barConfig.gap
+        : Number.parseFloat(barConfig.gap)
+      : 1;
+    const barRadius = barConfig?.radius
+      ? typeof barConfig.radius === "number"
+        ? barConfig.radius
+        : Number.parseFloat(barConfig.radius)
       : 1.5;
+    const heightScale = barConfig?.heightScale ?? 0.9;
 
     const totalBarWidth = barWidth + gap;
     const barsCount = Math.floor(width / totalBarWidth);
@@ -76,7 +79,7 @@ export const WaveformRenderer = forwardRef<WaveformRendererRef, WaveformRenderer
     for (let i = 0; i < barsCount; i++) {
       const peakIndex = Math.min(Math.floor(i * step), peaks.length - 1);
       const peak = peaks[peakIndex];
-      const barHeight = Math.max(peak * height * 0.9, 2);
+      const barHeight = Math.max(peak * height * heightScale, 2);
       const x = i * totalBarWidth;
       const y = (height - barHeight) / 2;
 
@@ -88,7 +91,7 @@ export const WaveformRenderer = forwardRef<WaveformRendererRef, WaveformRenderer
         ctx.fillRect(x, y, barWidth, barHeight);
       }
     }
-  }, [peaks, barStyle]);
+  }, [peaks, barConfig]);
 
   // ResizeObserver with RAF throttling
   useEffect(() => {
@@ -120,5 +123,5 @@ export const WaveformRenderer = forwardRef<WaveformRendererRef, WaveformRenderer
     drawWaveform();
   }, [drawWaveform]);
 
-  return <canvas ref={canvasRef} className={className} style={style} role="img" aria-label="Audio waveform" />;
+  return <canvas ref={canvasRef} className={className} role="img" aria-label="Audio waveform" />;
 });

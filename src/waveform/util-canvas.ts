@@ -33,6 +33,15 @@ export interface BarConfig extends BarStyle {
 }
 
 /**
+ * CSS custom properties for bar styling (used in style prop)
+ */
+export interface BarStyleVars {
+  "--bar-width"?: string | number;
+  "--bar-gap"?: string | number;
+  "--bar-radius"?: string | number;
+}
+
+/**
  * Read bar style settings from canvas element
  * @param canvas - Canvas element to read styles from (for color extraction)
  * @param barStyle - Directly passed bar style (optional, uses defaults)

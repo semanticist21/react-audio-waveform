@@ -23,6 +23,7 @@ export { useAudioRecorder } from "./recorder/use-audio-recorder.js";
 export type { UseAudioWaveformOptions, UseAudioWaveformReturn } from "./waveform/use-audio-waveform.js";
 // Waveform data extraction
 export { useAudioWaveform } from "./waveform/use-audio-waveform.js";
+export type { BarConfig, BarStyle } from "./waveform/util-canvas.js";
 
 // ============================================================================
 // Components

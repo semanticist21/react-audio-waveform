@@ -1,5 +1,5 @@
 import { type ForwardedRef, forwardRef, useEffect, useImperativeHandle, useRef } from "react";
-import { getCanvasBarStyles } from "../../waveform/util-canvas";
+import type { BarConfig } from "../../waveform/util-canvas";
 import { useAudioAnalyser } from "../use-audio-analyser";
 
 export interface LiveRecorderProps {
@@ -11,19 +11,12 @@ export interface LiveRecorderProps {
    * CSS class for styling. Use Tailwind classes:
    * - text-* for bar color (inherited via text-inherit)
    * - bg-* for background color
-   * - [--bar-width:N] for bar width in pixels
-   * - [--bar-gap:N] for gap between bars in pixels
-   * - [--bar-radius:N] for bar border radius in pixels
    */
   className?: string;
   /**
-   * Inline styles including CSS custom properties for bar styling
+   * Bar styling configuration
    */
-  style?: React.CSSProperties & {
-    "--bar-width"?: number;
-    "--bar-gap"?: number;
-    "--bar-radius"?: number;
-  };
+  barConfig?: BarConfig;
   /**
    * FFT size for frequency analysis (must be power of 2)
    * @default 2048
@@ -56,7 +49,7 @@ export interface LiveRecorderRef {
  */
 export const LiveRecorder = forwardRef<LiveRecorderRef, LiveRecorderProps>(
   (
-    { mediaRecorder, className = "", style, fftSize = 2048, smoothingTimeConstant = 0.8, showIdleState = true },
+    { mediaRecorder, className = "", barConfig, fftSize = 2048, smoothingTimeConstant = 0.8, showIdleState = true },
     ref: ForwardedRef<LiveRecorderRef>
   ) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -83,8 +76,25 @@ export const LiveRecorder = forwardRef<LiveRecorderRef, LiveRecorderProps>(
 
       const canvas = canvasRef.current;
 
-      // Read bar styles from CSS variables (once)
-      const { barWidth, gap, barRadius, barColor } = getCanvasBarStyles(canvas);
+      // barConfig에서 bar 스타일 값 추출
+      const barWidth = barConfig?.width
+        ? typeof barConfig.width === "number"
+          ? barConfig.width
+          : Number.parseFloat(barConfig.width)
+        : 3;
+      const gap = barConfig?.gap
+        ? typeof barConfig.gap === "number"
+          ? barConfig.gap
+          : Number.parseFloat(barConfig.gap)
+        : 1;
+      const barRadius = barConfig?.radius
+        ? typeof barConfig.radius === "number"
+          ? barConfig.radius
+          : Number.parseFloat(barConfig.radius)
+        : 1.5;
+
+      // canvas에서 barColor 추출 (text-inherit를 통해 Tailwind color 사용)
+      const barColor = getComputedStyle(canvas).color || "#3b82f6";
 
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
@@ -168,7 +178,7 @@ export const LiveRecorder = forwardRef<LiveRecorderRef, LiveRecorderProps>(
           animationRef.current = null;
         }
       };
-    }, [mediaRecorder, analyserRef, dataArrayRef, bufferLengthRef]);
+    }, [mediaRecorder, barConfig, analyserRef, dataArrayRef, bufferLengthRef]);
 
     // Draw idle state (녹음 시작 전)
     useEffect(() => {
@@ -179,8 +189,23 @@ export const LiveRecorder = forwardRef<LiveRecorderRef, LiveRecorderProps>(
 
         const dpr = window.devicePixelRatio || 1;
 
-        // Read bar styles from CSS variables
-        const { barWidth, gap, barRadius, barColor } = getCanvasBarStyles(canvas);
+        // barConfig에서 bar 스타일 값 추출
+        const barWidth = barConfig?.width
+          ? typeof barConfig.width === "number"
+            ? barConfig.width
+            : Number.parseFloat(barConfig.width)
+          : 3;
+        const gap = barConfig?.gap
+          ? typeof barConfig.gap === "number"
+            ? barConfig.gap
+            : Number.parseFloat(barConfig.gap)
+          : 1;
+        const barRadius = barConfig?.radius
+          ? typeof barConfig.radius === "number"
+            ? barConfig.radius
+            : Number.parseFloat(barConfig.radius)
+          : 1.5;
+        const barColor = getComputedStyle(canvas).color || "#3b82f6";
 
         const { width, height } = canvas.getBoundingClientRect();
         canvas.width = width * dpr;
@@ -203,36 +228,9 @@ export const LiveRecorder = forwardRef<LiveRecorderRef, LiveRecorderProps>(
           ctx.fill();
         }
       }
-    }, [mediaRecorder, showIdleState]);
+    }, [mediaRecorder, barConfig, showIdleState]);
 
-    return (
-      <>
-        <canvas
-          ref={canvasRef}
-          className={`text-inherit ${className}`}
-          style={style}
-          aria-hidden="true"
-          tabIndex={-1}
-        />
-        <span
-          style={{
-            position: "absolute",
-            width: "1px",
-            height: "1px",
-            padding: "0",
-            margin: "-1px",
-            overflow: "hidden",
-            clip: "rect(0, 0, 0, 0)",
-            whiteSpace: "nowrap",
-            border: "0",
-          }}
-          aria-live="polite"
-          aria-atomic="true"
-        >
-          {mediaRecorder?.state === "recording" ? "Recording audio" : "Audio recording paused"}
-        </span>
-      </>
-    );
+    return <canvas ref={canvasRef} className={`text-inherit ${className}`} aria-hidden="true" tabIndex={-1} />;
   }
 );
 

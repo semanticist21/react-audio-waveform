@@ -1,5 +1,5 @@
 import { type ForwardedRef, forwardRef, useEffect, useImperativeHandle, useRef } from "react";
-import { getCanvasBarStyles } from "../../waveform/util-canvas";
+import type { BarConfig } from "../../waveform/util-canvas";
 import { useAudioAnalyser } from "../use-audio-analyser";
 
 export interface LiveStreamingRecorderProps {
@@ -11,19 +11,12 @@ export interface LiveStreamingRecorderProps {
    * CSS class for styling. Use Tailwind classes:
    * - text-* for bar color (inherited via text-inherit)
    * - bg-* for background color
-   * - [--bar-width:N] for bar width in pixels
-   * - [--bar-gap:N] for gap between bars in pixels
-   * - [--bar-radius:N] for bar border radius in pixels
    */
   className?: string;
   /**
-   * Inline styles including CSS custom properties
+   * Bar styling configuration
    */
-  style?: React.CSSProperties & {
-    "--bar-width"?: number;
-    "--bar-gap"?: number;
-    "--bar-radius"?: number;
-  };
+  barConfig?: BarConfig;
   /**
    * FFT size for frequency analysis (must be power of 2)
    * @default 2048
@@ -49,28 +42,26 @@ export interface LiveStreamingRecorderProps {
 export interface LiveStreamingRecorderRef {
   /** Get the canvas element */
   getCanvas: () => HTMLCanvasElement | null;
-  /** Get the scroll container element */
-  getScrollContainer: () => HTMLDivElement | null;
   /** Get the audio context */
   getAudioContext: () => AudioContext | null;
   /** Get the analyser node */
   getAnalyser: () => AnalyserNode | null;
   /** Get the recorded amplitude data */
   getAmplitudeData: () => number[];
-  /** Scroll to the end (latest recording) */
-  scrollToEnd: () => void;
+  /** Clear all amplitude data */
+  clearAmplitudes: () => void;
 }
 
 /**
  * Timeline-based waveform visualizer for recording
- * Shows a scrollable waveform that grows as recording progresses (like Voice Memos)
+ * Shows amplitude timeline that grows as recording progresses
  */
 export const LiveStreamingRecorder = forwardRef<LiveStreamingRecorderRef, LiveStreamingRecorderProps>(
   (
     {
       mediaRecorder,
       className = "",
-      style,
+      barConfig,
       fftSize = 2048,
       smoothingTimeConstant = 0.4,
       sampleInterval = 50,
@@ -78,12 +69,10 @@ export const LiveStreamingRecorder = forwardRef<LiveStreamingRecorderRef, LiveSt
     },
     ref: ForwardedRef<LiveStreamingRecorderRef>
   ) => {
-    const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const animationRef = useRef<number | null>(null);
     const samplingIntervalRef = useRef<number | null>(null);
     const amplitudeDataRef = useRef<number[]>([]);
-    const isAutoScrollingRef = useRef(true);
 
     const { audioContextRef, analyserRef, dataArrayRef, bufferLengthRef } = useAudioAnalyser({
       mediaRecorder,
@@ -94,52 +83,50 @@ export const LiveStreamingRecorder = forwardRef<LiveStreamingRecorderRef, LiveSt
     // Expose methods via ref
     useImperativeHandle(ref, () => ({
       getCanvas: () => canvasRef.current,
-      getScrollContainer: () => containerRef.current,
       getAudioContext: () => audioContextRef.current,
       getAnalyser: () => analyserRef.current,
       getAmplitudeData: () => [...amplitudeDataRef.current],
-      scrollToEnd: () => {
-        if (containerRef.current) {
-          containerRef.current.scrollLeft = containerRef.current.scrollWidth;
-        }
+      clearAmplitudes: () => {
+        amplitudeDataRef.current = [];
       },
     }));
 
-    // Handle scroll events to detect manual scrolling
+    // Sampling and rendering loop (녹음 중)
     useEffect(() => {
-      const container = containerRef.current;
-      if (!container) return;
-
-      const handleScroll = () => {
-        const { scrollLeft, scrollWidth, clientWidth } = container;
-        // If user scrolled away from the end, disable auto-scrolling
-        isAutoScrollingRef.current = scrollLeft + clientWidth >= scrollWidth - 10;
-      };
-
-      container.addEventListener("scroll", handleScroll);
-      return () => container.removeEventListener("scroll", handleScroll);
-    }, []);
-
-    // Sampling and rendering loop
-    useEffect(() => {
-      if (!mediaRecorder || !canvasRef.current || !containerRef.current) {
+      if (!mediaRecorder || !canvasRef.current) {
         return;
       }
 
       const canvas = canvasRef.current;
-      const container = containerRef.current;
 
-      // Read bar styles from CSS variables (once)
-      const { barWidth, gap, barRadius, barColor } = getCanvasBarStyles(canvas);
+      // barConfig에서 bar 스타일 값 추출
+      const barWidth = barConfig?.width
+        ? typeof barConfig.width === "number"
+          ? barConfig.width
+          : Number.parseFloat(barConfig.width)
+        : 3;
+      const gap = barConfig?.gap
+        ? typeof barConfig.gap === "number"
+          ? barConfig.gap
+          : Number.parseFloat(barConfig.gap)
+        : 1;
+      const barRadius = barConfig?.radius
+        ? typeof barConfig.radius === "number"
+          ? barConfig.radius
+          : Number.parseFloat(barConfig.radius)
+        : 1.5;
+
+      // canvas에서 barColor 추출 (text-inherit를 통해 Tailwind color 사용)
+      const barColor = getComputedStyle(canvas).color || "#3b82f6";
 
       // Reset amplitude data when starting new recording
       amplitudeDataRef.current = [];
-      isAutoScrollingRef.current = true;
 
       const ctx = canvas.getContext("2d");
       if (!ctx) return;
 
       const dpr = window.devicePixelRatio || 1;
+      let isPaused = false;
 
       // Sample amplitude data at regular intervals
       const sampleAmplitude = () => {
@@ -165,30 +152,33 @@ export const LiveStreamingRecorder = forwardRef<LiveStreamingRecorderRef, LiveSt
 
       // Animation loop for rendering
       const draw = () => {
+        if (isPaused) {
+          animationRef.current = requestAnimationFrame(draw);
+          return;
+        }
+
         if (!ctx) return;
 
+        // Get current canvas dimensions
+        const { width, height } = canvas.getBoundingClientRect();
         const amplitudeData = amplitudeDataRef.current;
         const totalBarWidth = barWidth + gap;
 
         // Calculate required canvas width based on data
         const requiredWidth = amplitudeData.length * totalBarWidth;
-        const containerHeight = container.clientHeight;
+        const canvasWidth = Math.max(requiredWidth, width);
 
-        // Update canvas size
-        canvas.style.width = `${Math.max(requiredWidth, container.clientWidth)}px`;
-        canvas.style.height = `${containerHeight}px`;
-        canvas.width = Math.max(requiredWidth, container.clientWidth) * dpr;
-        canvas.height = containerHeight * dpr;
+        canvas.width = canvasWidth * dpr;
+        canvas.height = height * dpr;
         ctx.scale(dpr, dpr);
 
         // Clear canvas
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.clearRect(0, 0, canvasWidth, height);
 
-        // Set bar color (Use captured value from closure)
+        // Set bar color
         ctx.fillStyle = barColor;
 
         // Draw bars from amplitude data
-        const height = containerHeight;
         const minBarHeight = 2;
 
         for (let i = 0; i < amplitudeData.length; i++) {
@@ -201,11 +191,6 @@ export const LiveStreamingRecorder = forwardRef<LiveStreamingRecorderRef, LiveSt
           ctx.beginPath();
           ctx.roundRect(x, y, barWidth, barHeight, barRadius);
           ctx.fill();
-        }
-
-        // Auto-scroll to end if enabled
-        if (isAutoScrollingRef.current && requiredWidth > container.clientWidth) {
-          container.scrollLeft = requiredWidth - container.clientWidth;
         }
 
         animationRef.current = requestAnimationFrame(draw);
@@ -225,8 +210,14 @@ export const LiveStreamingRecorder = forwardRef<LiveStreamingRecorderRef, LiveSt
       };
 
       // Handle pause/resume events
-      const handlePause = () => stopSampling();
-      const handleResume = () => startSampling();
+      const handlePause = () => {
+        isPaused = true;
+        stopSampling();
+      };
+      const handleResume = () => {
+        isPaused = false;
+        startSampling();
+      };
 
       mediaRecorder.addEventListener("pause", handlePause);
       mediaRecorder.addEventListener("resume", handleResume);
@@ -247,41 +238,52 @@ export const LiveStreamingRecorder = forwardRef<LiveStreamingRecorderRef, LiveSt
         }
         stopSampling();
       };
-    }, [mediaRecorder, sampleInterval, analyserRef, dataArrayRef, bufferLengthRef]);
+    }, [mediaRecorder, barConfig, sampleInterval, analyserRef, dataArrayRef, bufferLengthRef]);
 
-    // Draw stopped state (keep existing waveform or show idle bars)
+    // Draw stopped state (녹음 정지 후)
     useEffect(() => {
-      if (!mediaRecorder && canvasRef.current && containerRef.current) {
+      if (!mediaRecorder && canvasRef.current) {
         const canvas = canvasRef.current;
-        const container = containerRef.current;
         const ctx = canvas.getContext("2d");
         if (!ctx) return;
 
         const dpr = window.devicePixelRatio || 1;
-        const containerHeight = container.clientHeight;
-        const containerWidth = container.clientWidth;
 
-        // Read bar styles from CSS variables
-        const { barWidth, gap, barRadius, barColor } = getCanvasBarStyles(canvas);
+        // barConfig에서 bar 스타일 값 추출
+        const barWidth = barConfig?.width
+          ? typeof barConfig.width === "number"
+            ? barConfig.width
+            : Number.parseFloat(barConfig.width)
+          : 3;
+        const gap = barConfig?.gap
+          ? typeof barConfig.gap === "number"
+            ? barConfig.gap
+            : Number.parseFloat(barConfig.gap)
+          : 1;
+        const barRadius = barConfig?.radius
+          ? typeof barConfig.radius === "number"
+            ? barConfig.radius
+            : Number.parseFloat(barConfig.radius)
+          : 1.5;
+        const barColor = getComputedStyle(canvas).color || "#3b82f6";
 
+        const { width, height } = canvas.getBoundingClientRect();
         const amplitudeData = amplitudeDataRef.current;
         const totalBarWidth = barWidth + gap;
 
         // If we have recorded data, draw it (stopped state)
         if (amplitudeData.length > 0) {
           const requiredWidth = amplitudeData.length * totalBarWidth;
+          const canvasWidth = Math.max(requiredWidth, width);
 
-          canvas.style.width = `${Math.max(requiredWidth, containerWidth)}px`;
-          canvas.style.height = `${containerHeight}px`;
-          canvas.width = Math.max(requiredWidth, containerWidth) * dpr;
-          canvas.height = containerHeight * dpr;
+          canvas.width = canvasWidth * dpr;
+          canvas.height = height * dpr;
           ctx.scale(dpr, dpr);
 
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.clearRect(0, 0, canvasWidth, height);
 
           ctx.fillStyle = barColor;
           const minBarHeight = 2;
-          const height = containerHeight;
 
           for (let i = 0; i < amplitudeData.length; i++) {
             const amplitude = amplitudeData[i];
@@ -294,55 +296,28 @@ export const LiveStreamingRecorder = forwardRef<LiveStreamingRecorderRef, LiveSt
           }
         } else if (showIdleState) {
           // No data - draw idle state (minimal bars)
-          canvas.style.width = `${containerWidth}px`;
-          canvas.style.height = `${containerHeight}px`;
-          canvas.width = containerWidth * dpr;
-          canvas.height = containerHeight * dpr;
+          canvas.width = width * dpr;
+          canvas.height = height * dpr;
           ctx.scale(dpr, dpr);
 
-          ctx.clearRect(0, 0, canvas.width, canvas.height);
+          ctx.clearRect(0, 0, width, height);
 
           ctx.fillStyle = barColor;
           const minBarHeight = 2;
-          const barCount = Math.floor(containerWidth / totalBarWidth);
+          const barCount = Math.floor((width + gap) / totalBarWidth);
 
           for (let i = 0; i < barCount; i++) {
             const x = i * totalBarWidth;
-            const y = (containerHeight - minBarHeight) / 2;
+            const y = (height - minBarHeight) / 2;
             ctx.beginPath();
             ctx.roundRect(x, y, barWidth, minBarHeight, barRadius);
             ctx.fill();
           }
         }
       }
-    }, [mediaRecorder, showIdleState]);
+    }, [mediaRecorder, barConfig, showIdleState]);
 
-    return (
-      <div ref={containerRef} className={`overflow-x-auto overflow-y-hidden ${className}`} style={style}>
-        <canvas ref={canvasRef} className="text-inherit h-full min-w-full" aria-hidden="true" tabIndex={-1} />
-        <span
-          style={{
-            position: "absolute",
-            width: "1px",
-            height: "1px",
-            padding: "0",
-            margin: "-1px",
-            overflow: "hidden",
-            clip: "rect(0, 0, 0, 0)",
-            whiteSpace: "nowrap",
-            border: "0",
-          }}
-          aria-live="polite"
-          aria-atomic="true"
-        >
-          {mediaRecorder?.state === "recording"
-            ? "Recording in progress"
-            : mediaRecorder?.state === "paused"
-              ? "Recording paused"
-              : "Recording stopped"}
-        </span>
-      </div>
-    );
+    return <canvas ref={canvasRef} className={`text-inherit ${className}`} aria-hidden="true" tabIndex={-1} />;
   }
 );
 
