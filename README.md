@@ -7,7 +7,6 @@ React components for audio waveform visualization and live recording.
 - **Full TypeScript** - Complete type safety with detailed type definitions
 - **Easy to Use** - Simple API with sensible defaults, works out of the box
 - **Headless Hooks** - Full control with raw audio data for custom implementations
-- **Tree-shakable** - Import only what you need for optimal bundle size
 - **SSR Safe** - Compatible with Next.js and other SSR frameworks
 
 ## Installation
