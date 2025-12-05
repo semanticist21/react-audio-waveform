@@ -19,7 +19,7 @@ pnpm add react-audio-waveform
 bun add react-audio-waveform
 ```
 
-**Requirements:** React 18+
+**Requirements:** React 18+, Web Audio API, MediaRecorder API
 
 ---
 
@@ -125,15 +125,6 @@ For Tailwind CSS users, colors can be passed via `currentColor`:
 ```
 
 ---
-
-## Browser Support
-
-- Chrome 66+
-- Firefox 76+
-- Safari 14.1+
-- Edge 79+
-
-Requires Web Audio API and MediaRecorder API support.
 
 ## License
 
