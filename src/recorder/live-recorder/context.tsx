@@ -2,37 +2,37 @@ import { createContext, type ReactNode, useContext } from "react";
 import { type UseLiveAudioDataOptions, type UseLiveAudioDataReturn, useLiveAudioData } from "./use-live-audio-data";
 
 // Context type definition
-type LiveVisualizerContextValue = UseLiveAudioDataReturn;
+type LiveRecorderContextValue = UseLiveAudioDataReturn;
 
 // Create context
-const LiveVisualizerContext = createContext<LiveVisualizerContextValue | null>(null);
+const LiveRecorderContext = createContext<LiveRecorderContextValue | null>(null);
 
 // Provider Props
-export interface LiveVisualizerProviderProps extends UseLiveAudioDataOptions {
-  children: ReactNode | ((value: LiveVisualizerContextValue) => ReactNode);
+export interface LiveRecorderProviderProps extends UseLiveAudioDataOptions {
+  children: ReactNode | ((value: LiveRecorderContextValue) => ReactNode);
 }
 
 /**
- * LiveVisualizer Context Provider
+ * LiveRecorder Context Provider
  * Root component that provides real-time audio data to child components
  */
-export function LiveVisualizerProvider({ children, ...options }: LiveVisualizerProviderProps) {
+export function LiveRecorderProvider({ children, ...options }: LiveRecorderProviderProps) {
   const value = useLiveAudioData(options);
 
   // Support render props pattern
   const content = typeof children === "function" ? children(value) : children;
 
-  return <LiveVisualizerContext.Provider value={value}>{content}</LiveVisualizerContext.Provider>;
+  return <LiveRecorderContext.Provider value={value}>{content}</LiveRecorderContext.Provider>;
 }
 
 /**
- * LiveVisualizer Contexthook
+ * LiveRecorder Context hook
  * Root Must be used within component
  */
-export function useLiveVisualizerContext(): LiveVisualizerContextValue {
-  const context = useContext(LiveVisualizerContext);
+export function useLiveRecorderContext(): LiveRecorderContextValue {
+  const context = useContext(LiveRecorderContext);
   if (!context) {
-    throw new Error("useLiveVisualizerContext must be used within LiveVisualizer.Root");
+    throw new Error("useLiveRecorderContext must be used within LiveRecorder.Root");
   }
   return context;
 }

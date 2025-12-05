@@ -111,9 +111,9 @@ export const LiveAudioVisualizer = forwardRef<LiveAudioVisualizerRef, LiveAudioV
         // Clear canvas
         ctx.clearRect(0, 0, width, height);
 
-        // Calculate number of bars that fit
+        // Calculate number of bars (assuming no gap after last bar)
         const totalBarWidth = barWidth + gap;
-        const numBars = Math.floor(width / totalBarWidth);
+        const numBars = Math.floor((width + gap) / totalBarWidth);
 
         // Set bar color (Use captured value from closure)
         ctx.fillStyle = barColor;

@@ -1,32 +1,32 @@
 import { forwardRef, type HTMLAttributes, type ReactNode, useEffect, useRef } from "react";
 import { type BarStyle, getCanvasBarStyles } from "../../waveform/util-canvas";
-import { LiveVisualizerProvider, useLiveVisualizerContext } from "./context";
+import { LiveRecorderProvider, useLiveRecorderContext } from "./context";
 import type { UseLiveAudioDataOptions } from "./use-live-audio-data";
 
 // ============================================================================
-// LiveVisualizer.Root
+// LiveRecorder.Root
 // ============================================================================
 
-export interface LiveVisualizerRootProps extends UseLiveAudioDataOptions {
-  children: ReactNode | ((value: ReturnType<typeof useLiveVisualizerContext>) => ReactNode);
+export interface LiveRecorderRootProps extends UseLiveAudioDataOptions {
+  children: ReactNode | ((value: ReturnType<typeof useLiveRecorderContext>) => ReactNode);
 }
 
-const LiveVisualizerRoot = forwardRef<HTMLDivElement, LiveVisualizerRootProps>(function LiveVisualizerRoot(
+const LiveRecorderRoot = forwardRef<HTMLDivElement, LiveRecorderRootProps>(function LiveRecorderRoot(
   { children, ...options },
   ref
 ) {
   return (
     <div ref={ref}>
-      <LiveVisualizerProvider {...options}>{children}</LiveVisualizerProvider>
+      <LiveRecorderProvider {...options}>{children}</LiveRecorderProvider>
     </div>
   );
 });
 
 // ============================================================================
-// LiveVisualizer.Canvas
+// LiveRecorder.Canvas
 // ============================================================================
 
-export interface LiveVisualizerCanvasProps extends HTMLAttributes<HTMLCanvasElement> {
+export interface LiveRecorderCanvasProps extends HTMLAttributes<HTMLCanvasElement> {
   /** Additional className for canvas element */
   className?: string;
   /** Inline styles for canvas element */
@@ -37,11 +37,11 @@ export interface LiveVisualizerCanvasProps extends HTMLAttributes<HTMLCanvasElem
   barStyle?: BarStyle;
 }
 
-const LiveVisualizerCanvas = forwardRef<HTMLCanvasElement, LiveVisualizerCanvasProps>(function LiveVisualizerCanvas(
+const LiveRecorderCanvas = forwardRef<HTMLCanvasElement, LiveRecorderCanvasProps>(function LiveRecorderCanvas(
   { className = "", style, barHeightScale = 0.9, barStyle, ...props },
   ref
 ) {
-  const { frequencies, isRecording, isPaused } = useLiveVisualizerContext();
+  const { frequencies, isRecording, isPaused } = useLiveRecorderContext();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number | null>(null);
 
@@ -85,14 +85,18 @@ const LiveVisualizerCanvas = forwardRef<HTMLCanvasElement, LiveVisualizerCanvasP
       ctx.clearRect(0, 0, width, height);
 
       const totalBarWidth = barWidth + gap;
-      const numBars = frequencies.length;
+      // Canvas width에 맞춰 표시할 bar 개수 계산
+      const numBars = Math.floor(width / totalBarWidth);
 
       // Set bar color
       ctx.fillStyle = barColor;
 
-      // Render bars
+      // Render bars - frequencies 배열을 numBars 개수로 리샘플링
       for (let i = 0; i < numBars; i++) {
-        const frequency = frequencies[i];
+        // 원본 frequencies 배열에서 인덱스 계산
+        const sourceIndex = Math.floor((i / numBars) * frequencies.length);
+        const frequency = frequencies[sourceIndex] || 0;
+
         // Apply height scale (default 0.9 = 90% max height)
         const barHeight = Math.max(2, (frequency / 100) * height * barHeightScale);
 
@@ -154,7 +158,7 @@ const LiveVisualizerCanvas = forwardRef<HTMLCanvasElement, LiveVisualizerCanvasP
 // Compound Component Composition
 // ============================================================================
 
-export const LiveVisualizer = Object.assign(LiveVisualizerRoot, {
-  Root: LiveVisualizerRoot,
-  Canvas: LiveVisualizerCanvas,
+export const LiveRecorder = Object.assign(LiveRecorderRoot, {
+  Root: LiveRecorderRoot,
+  Canvas: LiveRecorderCanvas,
 });

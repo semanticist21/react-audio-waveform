@@ -1,39 +1,38 @@
 import { forwardRef, type HTMLAttributes, type ReactNode, useEffect, useRef } from "react";
 import { type BarStyle, getCanvasBarStyles } from "../../waveform/util-canvas";
-import { RecordingWaveformProvider, useRecordingWaveformContext } from "./context";
+import { LiveStreamingRecorderProvider, useLiveStreamingRecorderContext } from "./context";
 import type { UseRecordingAmplitudesOptions } from "./use-recording-amplitudes";
 
 // ============================================================================
-// RecordingWaveform.Root
+// LiveStreamingRecorder.Root
 // ============================================================================
 
-export interface RecordingWaveformRootProps extends UseRecordingAmplitudesOptions {
-  children: ReactNode | ((value: ReturnType<typeof useRecordingWaveformContext>) => ReactNode);
+export interface LiveStreamingRecorderRootProps extends UseRecordingAmplitudesOptions {
+  children: ReactNode | ((value: ReturnType<typeof useLiveStreamingRecorderContext>) => ReactNode);
 }
 
-const RecordingWaveformRoot = forwardRef<HTMLDivElement, RecordingWaveformRootProps>(function RecordingWaveformRoot(
-  { children, ...options },
-  ref
-) {
-  return (
-    <div ref={ref}>
-      <RecordingWaveformProvider {...options}>{children}</RecordingWaveformProvider>
-    </div>
-  );
-});
+const LiveStreamingRecorderRoot = forwardRef<HTMLDivElement, LiveStreamingRecorderRootProps>(
+  function LiveStreamingRecorderRoot({ children, ...options }, ref) {
+    return (
+      <div ref={ref}>
+        <LiveStreamingRecorderProvider {...options}>{children}</LiveStreamingRecorderProvider>
+      </div>
+    );
+  }
+);
 
 // ============================================================================
-// RecordingWaveform.ScrollContainer
+// LiveStreamingRecorder.ScrollContainer
 // ============================================================================
 
-export interface RecordingWaveformScrollContainerProps extends HTMLAttributes<HTMLDivElement> {
+export interface LiveStreamingRecorderScrollContainerProps extends HTMLAttributes<HTMLDivElement> {
   children: ReactNode;
   /** Enable auto-scroll behavior (default: true) */
   autoScroll?: boolean;
 }
 
-const RecordingWaveformScrollContainer = forwardRef<HTMLDivElement, RecordingWaveformScrollContainerProps>(
-  function RecordingWaveformScrollContainer({ children, className = "", autoScroll = true, ...props }, ref) {
+const LiveStreamingRecorderScrollContainer = forwardRef<HTMLDivElement, LiveStreamingRecorderScrollContainerProps>(
+  function LiveStreamingRecorderScrollContainer({ children, className = "", autoScroll = true, ...props }, ref) {
     const containerRef = useRef<HTMLDivElement>(null);
     const isAutoScrollingRef = useRef(autoScroll);
 
@@ -72,10 +71,10 @@ const RecordingWaveformScrollContainer = forwardRef<HTMLDivElement, RecordingWav
 );
 
 // ============================================================================
-// RecordingWaveform.Canvas
+// LiveStreamingRecorder.Canvas
 // ============================================================================
 
-export interface RecordingWaveformCanvasProps extends HTMLAttributes<HTMLCanvasElement> {
+export interface LiveStreamingRecorderCanvasProps extends HTMLAttributes<HTMLCanvasElement> {
   /** Additional className for canvas element */
   className?: string;
   /** Inline styles for canvas element */
@@ -86,9 +85,9 @@ export interface RecordingWaveformCanvasProps extends HTMLAttributes<HTMLCanvasE
   barStyle?: BarStyle;
 }
 
-const RecordingWaveformCanvas = forwardRef<HTMLCanvasElement, RecordingWaveformCanvasProps>(
-  function RecordingWaveformCanvas({ className = "", style, barHeightScale = 0.9, barStyle, ...props }, ref) {
-    const { amplitudes, isRecording } = useRecordingWaveformContext();
+const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingRecorderCanvasProps>(
+  function LiveStreamingRecorderCanvas({ className = "", style, barHeightScale = 0.9, barStyle, ...props }, ref) {
+    const { amplitudes, isRecording } = useLiveStreamingRecorderContext();
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
     const animationRef = useRef<number | null>(null);
@@ -295,8 +294,8 @@ const RecordingWaveformCanvas = forwardRef<HTMLCanvasElement, RecordingWaveformC
 // Compound Component Composition
 // ============================================================================
 
-export const RecordingWaveform = Object.assign(RecordingWaveformRoot, {
-  Root: RecordingWaveformRoot,
-  ScrollContainer: RecordingWaveformScrollContainer,
-  Canvas: RecordingWaveformCanvas,
+export const LiveStreamingRecorder = Object.assign(LiveStreamingRecorderRoot, {
+  Root: LiveStreamingRecorderRoot,
+  ScrollContainer: LiveStreamingRecorderScrollContainer,
+  Canvas: LiveStreamingRecorderCanvas,
 });

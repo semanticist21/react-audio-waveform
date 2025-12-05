@@ -3,18 +3,18 @@
 // ============================================================================
 
 export type {
-  LiveVisualizerCanvasProps,
-  LiveVisualizerRootProps,
-} from "./recorder/live-visualizer/compound.js";
-// LiveVisualizer - Real-time audio visualization
-export { LiveVisualizer } from "./recorder/live-visualizer/compound.js";
+  LiveRecorderCanvasProps,
+  LiveRecorderRootProps,
+} from "./recorder/live-recorder/compound.js";
+// LiveRecorder - Real-time audio visualization
+export { LiveRecorder } from "./recorder/live-recorder/compound.js";
 export type {
-  RecordingWaveformCanvasProps,
-  RecordingWaveformRootProps,
-  RecordingWaveformScrollContainerProps,
-} from "./recorder/recording-waveform/compound.js";
-// RecordingWaveform - Timeline-based waveform
-export { RecordingWaveform } from "./recorder/recording-waveform/compound.js";
+  LiveStreamingRecorderCanvasProps,
+  LiveStreamingRecorderRootProps,
+  LiveStreamingRecorderScrollContainerProps,
+} from "./recorder/live-streaming-recorder/compound.js";
+// LiveStreamingRecorder - Timeline-based waveform
+export { LiveStreamingRecorder } from "./recorder/live-streaming-recorder/compound.js";
 export type {
   AudioWaveformCanvasProps,
   AudioWaveformContainerProps,
@@ -31,15 +31,15 @@ export type { BarStyle } from "./waveform/util-canvas.js";
 export type {
   UseLiveAudioDataOptions,
   UseLiveAudioDataReturn,
-} from "./recorder/live-visualizer/use-live-audio-data.js";
+} from "./recorder/live-recorder/use-live-audio-data.js";
 // Live audio data extraction
-export { useLiveAudioData } from "./recorder/live-visualizer/use-live-audio-data.js";
+export { useLiveAudioData } from "./recorder/live-recorder/use-live-audio-data.js";
 export type {
   UseRecordingAmplitudesOptions,
   UseRecordingAmplitudesReturn,
-} from "./recorder/recording-waveform/use-recording-amplitudes.js";
+} from "./recorder/live-streaming-recorder/use-recording-amplitudes.js";
 // Recording amplitudes extraction
-export { useRecordingAmplitudes } from "./recorder/recording-waveform/use-recording-amplitudes.js";
+export { useRecordingAmplitudes } from "./recorder/live-streaming-recorder/use-recording-amplitudes.js";
 export type { UseAudioAnalyserConfig, UseAudioAnalyserReturn } from "./recorder/use-audio-analyser.js";
 // Audio analyser hook (advanced usage)
 export { useAudioAnalyser } from "./recorder/use-audio-analyser.js";
@@ -54,12 +54,12 @@ export { useAudioWaveform } from "./waveform/use-audio-waveform.js";
 // Legacy Components (Deprecated - use Compound Components instead)
 // ============================================================================
 
-export type { LiveAudioVisualizerProps, LiveAudioVisualizerRef } from "./recorder/live-visualizer/index.js";
-// @deprecated Use LiveVisualizer compound components instead
-export { LiveAudioVisualizer } from "./recorder/live-visualizer/index.js";
-export type { RecordingWaveformProps, RecordingWaveformRef } from "./recorder/recording-waveform/index.js";
-// @deprecated Use RecordingWaveform compound components instead
-export { RecordingWaveform as RecordingWaveformLegacy } from "./recorder/recording-waveform/index.js";
+export type { LiveAudioVisualizerProps, LiveAudioVisualizerRef } from "./recorder/live-recorder/index.js";
+// @deprecated Use LiveRecorder compound components instead
+export { LiveAudioVisualizer } from "./recorder/live-recorder/index.js";
+export type { RecordingWaveformProps, RecordingWaveformRef } from "./recorder/live-streaming-recorder/index.js";
+// @deprecated Use LiveStreamingRecorder compound components instead
+export { RecordingWaveform as RecordingWaveformLegacy } from "./recorder/live-streaming-recorder/index.js";
 export type { AudioWaveformProps, AudioWaveformRef } from "./waveform/index.js";
 // @deprecated Use AudioWaveform compound components instead
 export { AudioVisualizer, AudioWaveform as AudioWaveformLegacy } from "./waveform/index.js";

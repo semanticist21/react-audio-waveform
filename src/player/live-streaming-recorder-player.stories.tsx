@@ -1,11 +1,18 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { RecordingWaveform } from "../recorder/recording-waveform/compound";
+import { LiveStreamingRecorder } from "../recorder/live-streaming-recorder/compound";
 import { useAudioRecorder } from "../recorder/use-audio-recorder";
-import rawSource from "./audio-player.stories.tsx?raw";
+import rawSource from "./live-streaming-recorder-player.stories.tsx?raw";
 
-function AudioPlayer() {
-  const { startRecording, stopRecording, pauseRecording, resumeRecording, mediaRecorder, isRecording, isPaused } =
-    useAudioRecorder();
+function LiveStreamingRecorderPlayer() {
+  const {
+    startRecording,
+    stopRecording,
+    pauseRecording,
+    resumeRecording,
+    mediaRecorder,
+    isRecording,
+    isPaused,
+  } = useAudioRecorder();
 
   // Recording start/pause/resume button handler
   const handleRecordClick = () => {
@@ -43,11 +50,11 @@ function AudioPlayer() {
         </button>
 
         {/* Waveform display area */}
-        <RecordingWaveform.Root mediaRecorder={mediaRecorder}>
-          <RecordingWaveform.ScrollContainer className="h-12 w-72 rounded-lg bg-slate-100 [scrollbar-width:thin]">
-            <RecordingWaveform.Canvas className="text-slate-400" />
-          </RecordingWaveform.ScrollContainer>
-        </RecordingWaveform.Root>
+        <LiveStreamingRecorder.Root mediaRecorder={mediaRecorder}>
+          <div className="h-12 w-72 overflow-x-auto rounded-lg bg-slate-100 [scrollbar-width:thin]">
+            <LiveStreamingRecorder.Canvas className="text-slate-400" />
+          </div>
+        </LiveStreamingRecorder.Root>
 
         {/* Stop button */}
         <button
@@ -63,9 +70,9 @@ function AudioPlayer() {
   );
 }
 
-const meta: Meta<typeof AudioPlayer> = {
-  title: "Player/AudioPlayer",
-  component: AudioPlayer,
+const meta: Meta<typeof LiveStreamingRecorderPlayer> = {
+  title: "Player/LiveStreamingRecorderPlayer",
+  component: LiveStreamingRecorderPlayer,
   parameters: {
     layout: "fullscreen",
     docs: {
@@ -79,6 +86,6 @@ const meta: Meta<typeof AudioPlayer> = {
 
 export default meta;
 
-type Story = StoryObj<typeof AudioPlayer>;
+type Story = StoryObj<typeof LiveStreamingRecorderPlayer>;
 
 export const Default: Story = {};
