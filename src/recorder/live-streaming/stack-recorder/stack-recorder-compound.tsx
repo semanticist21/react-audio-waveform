@@ -104,28 +104,43 @@ const LiveStreamingStackRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStrea
         // Set bar color
         ctx.fillStyle = barColor;
 
-        // Draw bars - amplitudes를 canvas width에 맞춰 다운샘플링 (path batching으로 draw call 최소화)
+        // Draw bars - 실제 amplitude 개수만큼 그리다가 canvas 너비 초과시 다운샘플링
         const minBarHeight = 2;
-        const barsCount = Math.floor(canvasWidth / totalBarWidth);
+        const maxBarsCount = Math.floor(canvasWidth / totalBarWidth);
+
+        // amplitude 개수가 maxBarsCount보다 적으면 그대로, 많으면 다운샘플링
+        // 이렇게 하면 처음엔 bar가 하나씩 쌓이다가 꽉 차면 압축 시작
+        const barsCount = Math.min(amplitudes.length, maxBarsCount);
+        const needsDownsample = amplitudes.length > maxBarsCount;
 
         ctx.beginPath();
         for (let i = 0; i < barsCount; i++) {
-          // 각 bar가 담당하는 amplitude 범위 계산 (downsample 방식)
-          const startIdx = Math.floor((i * amplitudes.length) / barsCount);
-          const endIdx = Math.floor(((i + 1) * amplitudes.length) / barsCount);
+          let amplitude: number;
 
-          // 해당 범위의 최대값 사용 (waveform 표준 방식)
-          let maxAmplitude = 0;
-          for (let j = startIdx; j < endIdx; j++) {
-            maxAmplitude = Math.max(maxAmplitude, amplitudes[j] || 0);
+          if (needsDownsample) {
+            // 다운샘플링: 각 bar가 담당하는 amplitude 범위의 최대값 사용
+            const startIdx = Math.floor((i * amplitudes.length) / barsCount);
+            const endIdx = Math.floor(((i + 1) * amplitudes.length) / barsCount);
+
+            let maxAmplitude = 0;
+            for (let j = startIdx; j < endIdx; j++) {
+              maxAmplitude = Math.max(maxAmplitude, amplitudes[j] || 0);
+            }
+            amplitude = maxAmplitude;
+          } else {
+            // 아직 다운샘플링 불필요: 1:1 매핑
+            amplitude = amplitudes[i] || 0;
           }
 
-          const barHeight = Math.max(minBarHeight, maxAmplitude * containerHeight * barHeightScale);
+          const barHeight = Math.max(minBarHeight, amplitude * containerHeight * barHeightScale);
 
-          const x = i * totalBarWidth;
-          const y = (containerHeight - barHeight) / 2;
+          // 픽셀 스냅핑: subpixel 렌더링으로 인한 일렁거림 방지
+          // Math.round로 정수 좌표에 정렬하여 antialiasing 아티팩트 최소화
+          const x = Math.round(i * totalBarWidth);
+          const y = Math.round((containerHeight - barHeight) / 2);
+          const roundedBarHeight = Math.round(barHeight);
 
-          ctx.roundRect(x, y, barWidth, barHeight, barRadius);
+          ctx.roundRect(x, y, barWidth, roundedBarHeight, barRadius);
         }
         ctx.fill();
       }
