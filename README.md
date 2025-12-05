@@ -4,8 +4,8 @@ React components for audio waveform visualization and live recording.
 
 ## Features
 
-- **Static Waveform** - Visualize audio files with playhead and seek support
-- **Live Recording** - Real-time waveform visualization during recording
+- **Waveform** - Visualize existing audio files with playhead and seek support
+- **Recorder** - Real-time waveform visualization during recording
 - **Headless Hooks** - Build custom UI with raw audio data
 - **Tree-shakable** - Import only what you need
 - **TypeScript** - Full type definitions included
@@ -22,9 +22,15 @@ bun add react-audio-waveform
 
 **Requirements:** React 18+
 
-## Components
+---
+
+## Waveform
+
+Visualize existing audio files (mp3, wav, etc.) with playhead and seek support.
 
 ### AudioWaveform
+
+![AudioWaveform](https://react-audio-waveform.netlify.app/audio-wave-form.png)
 
 Static waveform visualization with playhead and click-to-seek.
 
@@ -88,7 +94,38 @@ function Player() {
 }
 ```
 
+### useAudioWaveform
+
+Headless hook to extract waveform amplitude data from audio blob.
+
+```tsx
+import { useAudioWaveform } from "react-audio-waveform";
+
+function CustomWaveform({ blob }: { blob: Blob }) {
+  const { peaks, isLoading, error } = useAudioWaveform({ blob });
+
+  if (isLoading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error.message}</div>;
+
+  return (
+    <div className="flex items-center gap-px h-20">
+      {peaks?.map((peak, i) => (
+        <div key={i} className="w-1 bg-blue-500" style={{ height: `${peak * 100}%` }} />
+      ))}
+    </div>
+  );
+}
+```
+
+---
+
+## Recorder
+
+Real-time waveform visualization during recording using MediaRecorder API.
+
 ### LiveStreamingRecorder
+
+![LiveStreamingRecorder](https://react-audio-waveform.netlify.app/live-stream.png)
 
 Scrolling timeline waveform (Voice Memos style). Canvas grows horizontally as recording continues.
 
@@ -119,6 +156,8 @@ function Recorder() {
 
 ### LiveStreamingStackRecorder
 
+![LiveStreamingStackRecorder](https://react-audio-waveform.netlify.app/live-stream-stack.png)
+
 Fixed-width waveform where bars compress as recording grows.
 
 ```tsx
@@ -147,6 +186,8 @@ function StackRecorder() {
 
 ### LiveRecorder
 
+![LiveRecorder](https://react-audio-waveform.netlify.app/live-recorder.png)
+
 Real-time frequency bars visualization.
 
 ```tsx
@@ -171,38 +212,9 @@ function FrequencyRecorder() {
 }
 ```
 
-## Headless Hooks
-
-Build custom UI with raw audio data.
-
-### useAudioWaveform
-
-Extract waveform amplitude data from audio blob.
-
-```tsx
-import { useAudioWaveform } from "react-audio-waveform";
-
-function CustomWaveform({ blob }: { blob: Blob }) {
-  const { amplitudes, isLoading, error } = useAudioWaveform(blob, {
-    barCount: 100,
-  });
-
-  if (isLoading) return <div>Loading...</div>;
-  if (error) return <div>Error: {error.message}</div>;
-
-  return (
-    <div className="flex items-center gap-px h-20">
-      {amplitudes.map((amp, i) => (
-        <div key={i} className="w-1 bg-blue-500" style={{ height: `${amp * 100}%` }} />
-      ))}
-    </div>
-  );
-}
-```
-
 ### useAudioRecorder
 
-Manage recording state with pause/resume support.
+Headless hook to manage recording state with pause/resume support.
 
 ```tsx
 import { useAudioRecorder } from "react-audio-waveform";
@@ -234,7 +246,7 @@ function RecorderControls() {
 
 ### useLiveAudioData
 
-Extract real-time frequency and volume data.
+Headless hook to extract real-time frequency and volume data.
 
 ```tsx
 import { useLiveAudioData } from "react-audio-waveform";
@@ -254,7 +266,7 @@ function CustomFrequencyBars({ mediaRecorder }: { mediaRecorder: MediaRecorder |
 
 ### useRecordingAmplitudes
 
-Extract timeline amplitude data during recording.
+Headless hook to extract timeline amplitude data during recording.
 
 ```tsx
 import { useRecordingAmplitudes } from "react-audio-waveform";
@@ -271,6 +283,8 @@ function CustomTimelineWaveform({ mediaRecorder }: { mediaRecorder: MediaRecorde
   );
 }
 ```
+
+---
 
 ## Appearance Options
 
@@ -306,9 +320,11 @@ Options for scrollbar in `LiveStreamingRecorder`.
 | `thumbHoverColor` | `string` | `"#64748b"` | Thumb color on hover |
 | `thickness` | `number` | `6` | Scrollbar thickness in pixels |
 
+---
+
 ## Styling
 
-Components accept `className` prop for styling. They render canvas elements that can be styled with CSS.
+Components accept `className` and `style` props. They render canvas elements that can be styled with CSS.
 
 ```tsx
 <AudioWaveform
@@ -322,6 +338,8 @@ For Tailwind CSS users, colors can be passed via `currentColor`:
 ```tsx
 <LiveStreamingStackRecorder.Canvas className="text-blue-500" />
 ```
+
+---
 
 ## Browser Support
 
