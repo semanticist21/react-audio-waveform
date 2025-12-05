@@ -174,19 +174,6 @@ export const LiveStreamingStackRecorder = forwardRef<HTMLCanvasElement, LiveStre
       drawWaveform();
     }, [isRecording, isPaused, drawWaveform]);
 
-    return (
-      <canvas
-        ref={canvasRef}
-        className={className}
-        style={{
-          width: "100%",
-          height: "100%",
-          ...style,
-        }}
-        aria-hidden="true"
-        tabIndex={-1}
-        {...props}
-      />
-    );
+    return <canvas ref={canvasRef} className={className} style={style} aria-hidden="true" tabIndex={-1} {...props} />;
   }
 );
