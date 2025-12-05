@@ -4,15 +4,8 @@ import { useAudioRecorder } from "../recorder/use-audio-recorder";
 import rawSource from "./live-streaming-recorder-player.stories.tsx?raw";
 
 function LiveStreamingRecorderPlayer() {
-  const {
-    startRecording,
-    stopRecording,
-    pauseRecording,
-    resumeRecording,
-    mediaRecorder,
-    isRecording,
-    isPaused,
-  } = useAudioRecorder();
+  const { startRecording, stopRecording, pauseRecording, resumeRecording, mediaRecorder, isRecording, isPaused } =
+    useAudioRecorder();
 
   // Recording start/pause/resume button handler
   const handleRecordClick = () => {
@@ -50,10 +43,11 @@ function LiveStreamingRecorderPlayer() {
         </button>
 
         {/* Waveform display area */}
-        <LiveStreamingRecorder.Root mediaRecorder={mediaRecorder}>
-          <div className="h-12 w-72 overflow-x-auto rounded-lg bg-slate-100 [scrollbar-width:thin]">
-            <LiveStreamingRecorder.Canvas className="text-slate-400" />
-          </div>
+        <LiveStreamingRecorder.Root
+          mediaRecorder={mediaRecorder}
+          className="h-12 w-72 rounded-lg bg-slate-100 [scrollbar-width:thin]"
+        >
+          <LiveStreamingRecorder.Canvas className="text-slate-400" />
         </LiveStreamingRecorder.Root>
 
         {/* Stop button */}

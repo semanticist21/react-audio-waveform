@@ -25,6 +25,14 @@ export interface BarStyle {
 }
 
 /**
+ * Bar 렌더링 설정 (스타일 + 높이 스케일)
+ */
+export interface BarConfig extends BarStyle {
+  /** Bar height scale (0.0 - 1.0). Default 0.9 leaves 10% vertical padding */
+  heightScale?: number;
+}
+
+/**
  * Canvas 요소로부터 bar 스타일 설정을 읽어옴
  * @param canvas - 스타일을 읽을 canvas 요소 (color 추출용)
  * @param barStyle - 직접 전달된 bar 스타일 (optional, 기본값 사용)

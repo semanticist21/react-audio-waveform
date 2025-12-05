@@ -1,5 +1,5 @@
 import { forwardRef, type HTMLAttributes, type ReactNode, useEffect, useRef } from "react";
-import { type BarStyle, getCanvasBarStyles } from "../../waveform/util-canvas";
+import { type BarConfig, type BarStyle, getCanvasBarStyles } from "../../waveform/util-canvas";
 import { LiveRecorderProvider, useLiveRecorderContext } from "./context";
 import type { UseLiveAudioDataOptions } from "./use-live-audio-data";
 
@@ -7,17 +7,19 @@ import type { UseLiveAudioDataOptions } from "./use-live-audio-data";
 // LiveRecorder.Root
 // ============================================================================
 
-export interface LiveRecorderRootProps extends UseLiveAudioDataOptions {
+export interface LiveRecorderRootProps
+  extends UseLiveAudioDataOptions,
+    Omit<HTMLAttributes<HTMLDivElement>, "children"> {
   children: ReactNode | ((value: ReturnType<typeof useLiveRecorderContext>) => ReactNode);
 }
 
 const LiveRecorderRoot = forwardRef<HTMLDivElement, LiveRecorderRootProps>(function LiveRecorderRoot(
-  { children, ...options },
+  { children, className = "", mediaRecorder, ...props },
   ref
 ) {
   return (
-    <div ref={ref}>
-      <LiveRecorderProvider {...options}>{children}</LiveRecorderProvider>
+    <div ref={ref} className={className} {...props}>
+      <LiveRecorderProvider mediaRecorder={mediaRecorder}>{children}</LiveRecorderProvider>
     </div>
   );
 });
@@ -31,19 +33,27 @@ export interface LiveRecorderCanvasProps extends HTMLAttributes<HTMLCanvasElemen
   className?: string;
   /** Inline styles for canvas element */
   style?: React.CSSProperties;
-  /** Bar height scale (0.0 - 1.0). Default 0.9 leaves 10% vertical padding */
-  barHeightScale?: number;
-  /** Bar 스타일 (width, gap, radius) */
-  barStyle?: BarStyle;
+  /** Bar 렌더링 설정 (heightScale, width, gap, radius) */
+  barConfig?: BarConfig;
 }
 
 const LiveRecorderCanvas = forwardRef<HTMLCanvasElement, LiveRecorderCanvasProps>(function LiveRecorderCanvas(
-  { className = "", style, barHeightScale = 0.9, barStyle, ...props },
+  { className = "", style, barConfig, ...props },
   ref
 ) {
   const { frequencies, isRecording, isPaused } = useLiveRecorderContext();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const animationRef = useRef<number | null>(null);
+
+  // barConfig에서 값 추출 (기본값 적용)
+  const barHeightScale = barConfig?.heightScale ?? 0.9;
+  const barStyle: BarStyle | undefined = barConfig
+    ? {
+        width: barConfig.width,
+        gap: barConfig.gap,
+        radius: barConfig.radius,
+      }
+    : undefined;
 
   // Forward ref
   useEffect(() => {
@@ -61,7 +71,7 @@ const LiveRecorderCanvas = forwardRef<HTMLCanvasElement, LiveRecorderCanvasProps
     const canvas = canvasRef.current;
     if (!canvas || frequencies.length === 0) return;
 
-    // Read bar styles from barStyle prop or CSS variables (once)
+    // Read bar styles from barConfig or CSS variables (once)
     const { barWidth, gap, barRadius, barColor } = getCanvasBarStyles(canvas, barStyle);
 
     const ctx = canvas.getContext("2d");

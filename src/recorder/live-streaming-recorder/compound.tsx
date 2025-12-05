@@ -1,5 +1,5 @@
 import { forwardRef, type HTMLAttributes, type ReactNode, useEffect, useRef } from "react";
-import { type BarStyle, getCanvasBarStyles } from "../../waveform/util-canvas";
+import { type BarConfig, type BarStyle, getCanvasBarStyles } from "../../waveform/util-canvas";
 import { LiveStreamingRecorderProvider, useLiveStreamingRecorderContext } from "./context";
 import type { UseRecordingAmplitudesOptions } from "./use-recording-amplitudes";
 
@@ -7,32 +7,19 @@ import type { UseRecordingAmplitudesOptions } from "./use-recording-amplitudes";
 // LiveStreamingRecorder.Root
 // ============================================================================
 
-export interface LiveStreamingRecorderRootProps extends UseRecordingAmplitudesOptions {
+export interface LiveStreamingRecorderRootProps
+  extends UseRecordingAmplitudesOptions,
+    Omit<HTMLAttributes<HTMLDivElement>, "children"> {
   children: ReactNode | ((value: ReturnType<typeof useLiveStreamingRecorderContext>) => ReactNode);
-}
-
-const LiveStreamingRecorderRoot = forwardRef<HTMLDivElement, LiveStreamingRecorderRootProps>(
-  function LiveStreamingRecorderRoot({ children, ...options }, ref) {
-    return (
-      <div ref={ref}>
-        <LiveStreamingRecorderProvider {...options}>{children}</LiveStreamingRecorderProvider>
-      </div>
-    );
-  }
-);
-
-// ============================================================================
-// LiveStreamingRecorder.ScrollContainer
-// ============================================================================
-
-export interface LiveStreamingRecorderScrollContainerProps extends HTMLAttributes<HTMLDivElement> {
-  children: ReactNode;
   /** Enable auto-scroll behavior (default: true) */
   autoScroll?: boolean;
 }
 
-const LiveStreamingRecorderScrollContainer = forwardRef<HTMLDivElement, LiveStreamingRecorderScrollContainerProps>(
-  function LiveStreamingRecorderScrollContainer({ children, className = "", autoScroll = true, ...props }, ref) {
+const LiveStreamingRecorderRoot = forwardRef<HTMLDivElement, LiveStreamingRecorderRootProps>(
+  function LiveStreamingRecorderRoot(
+    { children, className = "", autoScroll = true, mediaRecorder, sampleInterval, ...props },
+    ref
+  ) {
     const containerRef = useRef<HTMLDivElement>(null);
     const isAutoScrollingRef = useRef(autoScroll);
 
@@ -64,7 +51,9 @@ const LiveStreamingRecorderScrollContainer = forwardRef<HTMLDivElement, LiveStre
 
     return (
       <div ref={containerRef} className={`overflow-x-auto overflow-y-hidden ${className}`} {...props}>
-        {children}
+        <LiveStreamingRecorderProvider mediaRecorder={mediaRecorder} sampleInterval={sampleInterval}>
+          {children}
+        </LiveStreamingRecorderProvider>
       </div>
     );
   }
@@ -79,18 +68,26 @@ export interface LiveStreamingRecorderCanvasProps extends HTMLAttributes<HTMLCan
   className?: string;
   /** Inline styles for canvas element */
   style?: React.CSSProperties;
-  /** Bar height scale (0.0 - 1.0). Default 0.9 leaves 10% vertical padding */
-  barHeightScale?: number;
-  /** Bar 스타일 (width, gap, radius) */
-  barStyle?: BarStyle;
+  /** Bar 렌더링 설정 (heightScale, width, gap, radius) */
+  barConfig?: BarConfig;
 }
 
 const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingRecorderCanvasProps>(
-  function LiveStreamingRecorderCanvas({ className = "", style, barHeightScale = 0.9, barStyle, ...props }, ref) {
+  function LiveStreamingRecorderCanvas({ className = "", style, barConfig, ...props }, ref) {
     const { amplitudes, isRecording } = useLiveStreamingRecorderContext();
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const containerRef = useRef<HTMLDivElement | null>(null);
     const animationRef = useRef<number | null>(null);
+
+    // barConfig에서 값 추출 (기본값 적용)
+    const barHeightScale = barConfig?.heightScale ?? 0.9;
+    const barStyle: BarStyle | undefined = barConfig
+      ? {
+          width: barConfig.width,
+          gap: barConfig.gap,
+          radius: barConfig.radius,
+        }
+      : undefined;
 
     // Forward ref
     useEffect(() => {
@@ -103,7 +100,7 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
       }
     }, [ref]);
 
-    // Find parent ScrollContainer element
+    // Find parent Root element (overflow container)
     useEffect(() => {
       const canvas = canvasRef.current;
       if (!canvas) return;
@@ -126,7 +123,7 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
       const container = containerRef.current;
       if (!canvas || !container || !isRecording) return;
 
-      // Read bar styles from barStyle prop or CSS variables (once)
+      // Read bar styles from barConfig or CSS variables (once)
       const { barWidth, gap, barRadius, barColor } = getCanvasBarStyles(canvas, barStyle);
 
       const ctx = canvas.getContext("2d");
@@ -203,7 +200,7 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
       const containerHeight = container.clientHeight;
       const containerWidth = container.clientWidth;
 
-      // Read bar styles from barStyle prop or CSS variables
+      // Read bar styles from barConfig or CSS variables
       const { barWidth, gap, barRadius, barColor } = getCanvasBarStyles(canvas, barStyle);
       const totalBarWidth = barWidth + gap;
 
@@ -296,6 +293,5 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
 
 export const LiveStreamingRecorder = Object.assign(LiveStreamingRecorderRoot, {
   Root: LiveStreamingRecorderRoot,
-  ScrollContainer: LiveStreamingRecorderScrollContainer,
   Canvas: LiveStreamingRecorderCanvas,
 });

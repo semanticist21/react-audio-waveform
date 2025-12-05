@@ -11,7 +11,6 @@ export { LiveRecorder } from "./recorder/live-recorder/compound.js";
 export type {
   LiveStreamingRecorderCanvasProps,
   LiveStreamingRecorderRootProps,
-  LiveStreamingRecorderScrollContainerProps,
 } from "./recorder/live-streaming-recorder/compound.js";
 // LiveStreamingRecorder - Timeline-based waveform
 export { LiveStreamingRecorder } from "./recorder/live-streaming-recorder/compound.js";
@@ -22,7 +21,7 @@ export type {
 } from "./waveform/audio-waveform-compound.js";
 // AudioWaveform - Static waveform visualization
 export { AudioWaveform } from "./waveform/audio-waveform-compound.js";
-export type { BarStyle } from "./waveform/util-canvas.js";
+export type { BarConfig, BarStyle } from "./waveform/util-canvas.js";
 
 // ============================================================================
 // Headless Hooks

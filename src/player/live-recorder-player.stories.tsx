@@ -4,15 +4,8 @@ import { useAudioRecorder } from "../recorder/use-audio-recorder";
 import rawSource from "./live-recorder-player.stories.tsx?raw";
 
 function LiveRecorderPlayer() {
-  const {
-    startRecording,
-    stopRecording,
-    pauseRecording,
-    resumeRecording,
-    mediaRecorder,
-    isRecording,
-    isPaused,
-  } = useAudioRecorder();
+  const { startRecording, stopRecording, pauseRecording, resumeRecording, mediaRecorder, isRecording, isPaused } =
+    useAudioRecorder();
 
   // 녹음 시작/일시정지/재개 버튼 핸들러
   const handleRecordClick = () => {
@@ -50,11 +43,8 @@ function LiveRecorderPlayer() {
         </button>
 
         {/* 실시간 주파수 바 표시 영역 */}
-        <LiveRecorder.Root mediaRecorder={mediaRecorder}>
-          <LiveRecorder.Canvas
-            className="h-12 w-88 rounded-lg bg-slate-100 text-green-500"
-            barHeightScale={0.9}
-          />
+        <LiveRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-88 rounded-lg bg-slate-100">
+          <LiveRecorder.Canvas className="text-green-500" barConfig={{ heightScale: 0.9 }} />
         </LiveRecorder.Root>
 
         {/* 정지 버튼 */}
