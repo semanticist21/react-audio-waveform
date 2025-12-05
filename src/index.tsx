@@ -3,18 +3,6 @@
 // ============================================================================
 
 export type {
-  LiveRecorderCanvasProps,
-  LiveRecorderRootProps,
-} from "./recorder/live-recorder/compound.js";
-// LiveRecorder - Real-time audio visualization
-export { LiveRecorder } from "./recorder/live-recorder/compound.js";
-export type {
-  LiveStreamingRecorderCanvasProps,
-  LiveStreamingRecorderRootProps,
-} from "./recorder/live-streaming-recorder/compound.js";
-// LiveStreamingRecorder - Timeline-based waveform
-export { LiveStreamingRecorder } from "./recorder/live-streaming-recorder/compound.js";
-export type {
   AudioWaveformCanvasProps,
   AudioWaveformContainerProps,
   AudioWaveformRootProps,

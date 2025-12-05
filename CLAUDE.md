@@ -35,15 +35,11 @@ src/
 │   ├── util-canvas.ts              # Canvas style utilities
 │   └── util-suspense.ts            # React Suspense cache
 ├── recorder/              # Live recording components
-│   ├── live-visualizer/      # Real-time frequency bars
+│   ├── live-recorder/         # Real-time frequency bars
 │   │   ├── index.tsx             # Legacy component (deprecated)
-│   │   ├── compound.tsx          # Compound component API
-│   │   ├── context.tsx           # Context provider
 │   │   └── use-live-audio-data.ts # Headless hook
-│   ├── recording-waveform/   # Timeline waveform (Voice Memos style)
+│   ├── live-streaming-recorder/ # Timeline waveform (Voice Memos style)
 │   │   ├── index.tsx                  # Legacy component (deprecated)
-│   │   ├── compound.tsx               # Compound component API
-│   │   ├── context.tsx                # Context provider
 │   │   └── use-recording-amplitudes.ts # Headless hook
 │   ├── use-audio-analyser.ts # Shared Web Audio setup hook
 │   └── use-audio-recorder.ts # MediaRecorder hook with pause/resume
@@ -52,8 +48,8 @@ src/
 ```
 
 **Component Architecture Pattern:**
-- **Compound Components (Recommended):** Flexible composition API with `Component.Root`, `Component.Canvas`, etc.
-- **Headless Hooks:** Extract raw data for custom UI implementations
+- **Compound Components (waveform only):** Flexible composition API with `AudioWaveform.Root`, `AudioWaveform.Canvas`, etc.
+- **Headless Hooks (Recommended):** Extract raw data for custom UI implementations
 - **Legacy Components (Deprecated):** All-in-one components for backwards compatibility
 
 - **Build:** Vite 7 library mode with `vite-plugin-dts` for type generation
@@ -66,7 +62,7 @@ src/
 ## Code Conventions
 
 - **File naming:** kebab-case (e.g., `audio-waveform.tsx`, `use-audio-recorder.ts`)
-- **Component organization:** Feature folders contain `index.tsx` (legacy), `compound.tsx`, `context.tsx`, and `use-*.ts` (headless hook)
+- **Component organization:** Feature folders contain `index.tsx` (legacy) and `use-*.ts` (headless hook). Waveform has additional compound component files.
 - **Exports:** All public APIs exported from `src/index.tsx` (auto-sorted by Biome)
 - **Imports:** Use relative paths; Biome auto-organizes import order
 - **Commit messages:** Conventional commit format, title only (no co-authored-by, no emoji)
@@ -75,7 +71,7 @@ src/
 
 ## Component API
 
-### Compound Components (Recommended)
+### Compound Components (waveform only)
 
 **AudioWaveform** - Static waveform visualization:
 ```tsx
@@ -86,23 +82,7 @@ src/
 </AudioWaveform.Root>
 ```
 
-**LiveVisualizer** - Real-time audio frequency bars:
-```tsx
-<LiveVisualizer.Root mediaRecorder={recorder}>
-  <LiveVisualizer.Canvas className="h-32 text-green-500" barHeightScale={0.9} />
-</LiveVisualizer.Root>
-```
-
-**RecordingWaveform** - Timeline waveform (Voice Memos style):
-```tsx
-<RecordingWaveform.Root mediaRecorder={recorder} sampleInterval={50}>
-  <RecordingWaveform.ScrollContainer className="h-32">
-    <RecordingWaveform.Canvas className="text-orange-500" />
-  </RecordingWaveform.ScrollContainer>
-</RecordingWaveform.Root>
-```
-
-### Headless Hooks
+### Headless Hooks (Recommended for recorder components)
 
 **useAudioRecorder** - Recording state management:
 - Returns: `{ startRecording, stopRecording, pauseRecording, resumeRecording, mediaRecorder, recordingBlob, isRecording, isPaused, recordingTime, error }`
@@ -142,7 +122,8 @@ src/
 
 2. **Adding New Components:**
    - Create feature folder under `recorder/` or `waveform/`
-   - Include: `index.tsx` (legacy), `compound.tsx`, `context.tsx`, `use-*.ts` (headless)
+   - Include: `index.tsx` (legacy) and `use-*.ts` (headless hook)
+   - For waveform components, optionally add compound component files
    - Export all public APIs from `src/index.tsx`
    - Add Storybook story in `src/player/`
 

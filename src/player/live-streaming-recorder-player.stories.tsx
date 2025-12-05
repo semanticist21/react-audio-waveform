@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { LiveStreamingRecorder } from "../recorder/live-streaming-recorder/compound";
+import { RecordingWaveformLegacy } from "..";
 import { useAudioRecorder } from "../recorder/use-audio-recorder";
 import rawSource from "./live-streaming-recorder-player.stories.tsx?raw";
 
@@ -43,12 +43,10 @@ function LiveStreamingRecorderPlayer() {
         </button>
 
         {/* Waveform display area */}
-        <LiveStreamingRecorder.Root
+        <RecordingWaveformLegacy
           mediaRecorder={mediaRecorder}
-          className="h-12 w-72 rounded-lg bg-slate-100 [scrollbar-width:thin]"
-        >
-          <LiveStreamingRecorder.Canvas className="text-slate-400" />
-        </LiveStreamingRecorder.Root>
+          className="h-12 w-72 rounded-lg bg-slate-100 text-slate-400 [scrollbar-width:thin]"
+        />
 
         {/* Stop button */}
         <button

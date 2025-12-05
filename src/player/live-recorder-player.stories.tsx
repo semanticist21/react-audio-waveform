@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react";
-import { LiveRecorder } from "../recorder/live-recorder/compound";
+import { LiveAudioVisualizer } from "..";
 import { useAudioRecorder } from "../recorder/use-audio-recorder";
 import rawSource from "./live-recorder-player.stories.tsx?raw";
 
@@ -43,9 +43,10 @@ function LiveRecorderPlayer() {
         </button>
 
         {/* 실시간 주파수 바 표시 영역 */}
-        <LiveRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-88 rounded-lg bg-slate-100">
-          <LiveRecorder.Canvas className="text-green-500" barConfig={{ heightScale: 0.9 }} />
-        </LiveRecorder.Root>
+        <LiveAudioVisualizer
+          mediaRecorder={mediaRecorder}
+          className="h-12 w-88 rounded-lg bg-slate-100 text-green-500"
+        />
 
         {/* 정지 버튼 */}
         <button
