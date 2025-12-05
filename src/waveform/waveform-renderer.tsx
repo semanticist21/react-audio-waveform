@@ -11,7 +11,7 @@ export interface WaveformRendererProps {
   peaks: number[] | null;
   /** Additional class name for the canvas */
   className?: string;
-  /** Waveform appearance configuration (barColor, barWidth, playheadColor 등) */
+  /** Waveform appearance configuration (barColor, barWidth, playheadColor, etc.) */
   appearance?: AudioWaveformAppearance;
   /** Current playback time in seconds */
   currentTime?: number;
@@ -58,7 +58,7 @@ export const WaveformRenderer = forwardRef<WaveformRendererRef, WaveformRenderer
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.clearRect(0, 0, width, height);
 
-    // appearance에서 스타일 추출 (기본값 적용)
+    // Extract styles from appearance (with defaults)
     const barColor = appearance?.barColor ?? DEFAULT_WAVEFORM_APPEARANCE.barColor;
     const barWidth = appearance?.barWidth ?? DEFAULT_WAVEFORM_APPEARANCE.barWidth;
     const barGap = appearance?.barGap ?? DEFAULT_WAVEFORM_APPEARANCE.barGap;
@@ -87,7 +87,7 @@ export const WaveformRenderer = forwardRef<WaveformRendererRef, WaveformRenderer
       }
     }
 
-    // Playhead 렌더링 (currentTime과 duration이 있을 때만)
+    // Render playhead (only when currentTime and duration are available)
     if (currentTime !== undefined && duration !== undefined && duration > 0) {
       const playheadX = (currentTime / duration) * width;
       const playheadColor = appearance?.playheadColor ?? DEFAULT_PLAYHEAD_APPEARANCE.playheadColor;

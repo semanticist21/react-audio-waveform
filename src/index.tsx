@@ -32,6 +32,12 @@ export { useAudioWaveform } from "./waveform/use-audio-waveform.js";
 // Compound Components
 // ============================================================================
 
+export type { LiveRecorderProps, LiveRecorderRef } from "./recorder/live-recorder/index.js";
+// LiveRecorder component (real-time frequency bars)
+export { LiveRecorder } from "./recorder/live-recorder/index.js";
+export type { LiveRecorderProviderProps } from "./recorder/live-recorder/live-recorder-context.js";
+// LiveRecorder context
+export { LiveRecorderProvider, useLiveRecorderContext } from "./recorder/live-recorder/live-recorder-context.js";
 export type {
   LiveStreamingRecorderCanvasProps,
   LiveStreamingRecorderRootProps,

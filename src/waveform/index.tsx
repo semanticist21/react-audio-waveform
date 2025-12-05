@@ -13,7 +13,7 @@ export interface AudioWaveformProps {
   blob: Blob | null;
   /** Additional class name for the canvas */
   className?: string;
-  /** Waveform appearance configuration (barColor, barWidth, playheadColor 등) */
+  /** Waveform appearance configuration (barColor, barWidth, playheadColor, etc.) */
   appearance?: AudioWaveformAppearance;
   /** Enable Suspense mode (requires Suspense boundary in parent) */
   suspense?: boolean;
@@ -38,7 +38,7 @@ export const AudioWaveform = forwardRef<AudioWaveformRef, AudioWaveformProps>(fu
   const blobRef = useRef<Blob | null>(null);
   const rendererRef = useRef<WaveformRendererRef>(null);
 
-  // sampleCount: 화면 너비만큼 샘플을 가져와서 고해상도에서도 선명하게 표시
+  // sampleCount: Fetch samples matching screen width for sharp display on high-resolution screens
   const sampleCount = useMemo(() => Math.max(500, Math.ceil(window.innerWidth)), []);
 
   // Forward ref to WaveformRenderer's canvas

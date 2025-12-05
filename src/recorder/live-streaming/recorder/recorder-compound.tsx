@@ -19,7 +19,7 @@ const LiveStreamingRecorderRoot = forwardRef<HTMLDivElement, LiveStreamingRecord
     { children, className = "", style, mediaRecorder, fftSize, smoothingTimeConstant, sampleInterval, ...props },
     ref
   ) {
-    // WebKit 오버레이 스크롤바 스타일 주입 (한 번만 실행)
+    // Inject WebKit overlay scrollbar styles (runs once)
     useEffect(() => {
       const styleId = "live-streaming-recorder-scrollbar-style";
       if (document.getElementById(styleId)) return;
@@ -45,7 +45,7 @@ const LiveStreamingRecorderRoot = forwardRef<HTMLDivElement, LiveStreamingRecord
       document.head.appendChild(styleElement);
     }, []);
 
-    // 기본 스크롤바 스타일 및 overflow 적용 (LiveStreamingRecorder는 scrolling 컨셉)
+    // Apply default scrollbar styles and overflow (LiveStreamingRecorder uses scrolling concept)
     const mergedClassName = `overflow-x-auto overflow-y-hidden live-streaming-recorder-overlay-scrollbar [scrollbar-width:thin] [scrollbar-color:rgba(148,163,184,0.3)_transparent] ${className}`;
 
     return (
@@ -72,7 +72,7 @@ export interface LiveStreamingRecorderCanvasProps extends HTMLAttributes<HTMLCan
   className?: string;
   /** Inline styles for canvas element */
   style?: React.CSSProperties;
-  /** Waveform appearance configuration (barColor, barWidth 등) */
+  /** Waveform appearance configuration (barColor, barWidth, etc.) */
   appearance?: WaveformAppearance;
   /**
    * Allow canvas width to grow beyond container (enables scrolling)
@@ -92,7 +92,7 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
     const containerSizeRef = useRef({ width: 0, height: 0 });
     const containerRef = useRef<HTMLElement | null>(null);
 
-    // growWidth 모드에서 canvas width는 절대 줄어들지 않도록 추적
+    // Track canvas width in growWidth mode to ensure it never shrinks
     const prevCanvasWidthRef = useRef<number>(0);
 
     // Forward ref
@@ -106,14 +106,14 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
       }
     }, [ref]);
 
-    // 새로운 녹음 시작 시 canvas width ref 초기화
+    // Reset canvas width ref when new recording starts
     useEffect(() => {
       if (amplitudes.length === 0) {
         prevCanvasWidthRef.current = 0;
       }
     }, [amplitudes.length]);
 
-    // Canvas rendering function (녹음 중 실시간으로 호출됨)
+    // Canvas rendering function (called in real-time during recording)
     const drawWaveform = useCallback(() => {
       const canvas = canvasRef.current;
       if (!canvas) return;
@@ -123,12 +123,12 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
 
       const dpr = window.devicePixelRatio || 1;
 
-      // Container의 실제 크기 가져오기 (parent element의 크기 사용)
+      // Get container's actual size (use parent element's size)
       const container = canvas.parentElement;
       const containerWidth = container?.clientWidth || canvas.clientWidth;
       const containerHeight = container?.clientHeight || canvas.clientHeight;
 
-      // appearance에서 스타일 추출 (기본값 적용)
+      // Extract styles from appearance (with defaults)
       const barColor = appearance?.barColor ?? DEFAULT_WAVEFORM_APPEARANCE.barColor;
       const barWidth = appearance?.barWidth ?? DEFAULT_WAVEFORM_APPEARANCE.barWidth;
       const barGap = appearance?.barGap ?? DEFAULT_WAVEFORM_APPEARANCE.barGap;
@@ -137,23 +137,23 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
 
       const totalBarWidth = barWidth + barGap;
 
-      // 녹음 중이거나 데이터가 있을 때
+      // When recording or data exists
       if (isRecording || amplitudes.length > 0) {
-        // Canvas width 계산: growWidth에 따라 다르게 처리
+        // Calculate canvas width: different handling based on growWidth
         let canvasWidth: number;
         if (growWidth) {
-          // 데이터에 맞춰 canvas가 늘어남 (scrolling 가능)
-          // pause/resume 시에도 정확한 width 유지를 위해 amplitudes 길이로만 계산
+          // Canvas grows with data (enables scrolling)
+          // Calculate width based on amplitudes length for accurate width during pause/resume
           const requiredWidth = amplitudes.length * totalBarWidth;
-          // containerWidth는 최소값으로만 사용 (빈 상태일 때 너무 작아지는 것 방지)
+          // Use containerWidth only as minimum (prevent too small when empty)
           const calculatedWidth = amplitudes.length > 0 ? requiredWidth : containerWidth;
-          // growWidth 모드에서는 canvas width가 절대 줄어들지 않도록 (pause/resume 안정성)
+          // In growWidth mode, canvas width never shrinks (pause/resume stability)
           canvasWidth = Math.max(calculatedWidth, prevCanvasWidthRef.current);
           prevCanvasWidthRef.current = canvasWidth;
-          // CSS 레이아웃 크기도 명시적으로 설정 (스크롤 가능하게)
+          // Set CSS layout size explicitly (enable scrolling)
           canvas.style.width = `${canvasWidth}px`;
         } else {
-          // 고정 width 유지 (bar가 압축됨)
+          // Maintain fixed width (bars compress)
           canvasWidth = containerWidth;
           canvas.style.width = "100%";
         }
@@ -168,12 +168,12 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
         // Set bar color
         ctx.fillStyle = barColor;
 
-        // Draw bars from amplitude data (path batching으로 draw call 최소화)
+        // Draw bars from amplitude data (minimize draw calls with path batching)
         const minBarHeight = 2;
         ctx.beginPath();
 
         if (growWidth) {
-          // Scrolling mode: 각 amplitude마다 bar 하나씩
+          // Scrolling mode: one bar per amplitude
           for (let i = 0; i < amplitudes.length; i++) {
             const amplitude = amplitudes[i];
             const barHeight = Math.max(minBarHeight, amplitude * containerHeight * barHeightScale);
@@ -184,7 +184,7 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
             ctx.roundRect(x, y, barWidth, barHeight, barRadius);
           }
         } else {
-          // Fixed width mode: amplitudes를 canvas width에 맞춰 압축
+          // Fixed width mode: compress amplitudes to fit canvas width
           const barsCount = Math.floor(canvasWidth / totalBarWidth);
           const step = amplitudes.length / barsCount;
 
@@ -202,7 +202,7 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
 
         ctx.fill();
       }
-      // 녹음 중이 아니고 데이터도 없으면 아무것도 그리지 않음
+      // Don't draw anything if not recording and no data
     }, [amplitudes, isRecording, appearance, growWidth]);
 
     // Track container size with ResizeObserver and get parent container reference
@@ -210,7 +210,7 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
       const canvas = canvasRef.current;
       if (!canvas) return;
 
-      // 스크롤 가능한 부모 컨테이너 찾기
+      // Find scrollable parent container
       containerRef.current = canvas.parentElement;
 
       const resizeObserver = new ResizeObserver((entries) => {
@@ -220,7 +220,7 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
         const { width, height } = entry.contentRect;
         containerSizeRef.current = { width, height };
 
-        // Container 크기 변경시 다시 그리기
+        // Redraw when container size changes
         if (!isRecording) {
           drawWaveform();
         }
@@ -230,13 +230,13 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
       return () => resizeObserver.disconnect();
     }, [isRecording, drawWaveform]);
 
-    // Animation loop when recording (매 프레임마다 실행되어 실시간 업데이트)
+    // Animation loop when recording (runs every frame for real-time updates)
     useEffect(() => {
       if (isRecording && !isPaused) {
         const draw = () => {
           drawWaveform();
 
-          // 녹음 중일 때 자동으로 오른쪽 끝으로 스크롤
+          // Auto-scroll to right edge while recording
           if (growWidth && containerRef.current) {
             containerRef.current.scrollLeft = containerRef.current.scrollWidth;
           }
@@ -252,7 +252,7 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
           }
         };
       }
-      // Draw once when stopped or paused (녹음 종료 후에도 파형 유지)
+      // Draw once when stopped or paused (preserve waveform after recording ends)
       drawWaveform();
     }, [isRecording, isPaused, drawWaveform, growWidth]);
 
@@ -261,7 +261,7 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
         ref={canvasRef}
         className={className}
         style={{
-          // growWidth일 때 inline-block으로 설정하여 자체 너비를 가질 수 있게 함
+          // Set to block in growWidth mode to allow self-determined width
           display: growWidth ? "block" : undefined,
           height: "100%",
           ...style,

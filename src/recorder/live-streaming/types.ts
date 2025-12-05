@@ -46,6 +46,6 @@ export interface BaseRecorderCanvasProps extends HTMLAttributes<HTMLCanvasElemen
   className?: string;
   /** Inline styles for canvas element */
   style?: React.CSSProperties;
-  /** Waveform appearance configuration (barColor, barWidth 등) */
+  /** Waveform appearance configuration (barColor, barWidth, etc.) */
   appearance?: WaveformAppearance;
 }

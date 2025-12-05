@@ -43,7 +43,7 @@ export interface LiveStreamingStackRecorderCanvasProps extends HTMLAttributes<HT
   className?: string;
   /** Inline styles for canvas element */
   style?: React.CSSProperties;
-  /** Waveform appearance configuration (barColor, barWidth 등) */
+  /** Waveform appearance configuration (barColor, barWidth, etc.) */
   appearance?: WaveformAppearance;
 }
 
@@ -52,7 +52,7 @@ const LiveStreamingStackRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStrea
     const { amplitudes, isRecording, isPaused } = useLiveStreamingStackRecorderContext();
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const animationRef = useRef<number | null>(null);
-    // Canvas 크기 캐싱 (ResizeObserver에서만 업데이트, 매 프레임 getBoundingClientRect 방지)
+    // Cache canvas size (only update from ResizeObserver, avoid per-frame getBoundingClientRect)
     const sizeRef = useRef({ width: 0, height: 0 });
 
     // Forward ref
@@ -66,7 +66,7 @@ const LiveStreamingStackRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStrea
       }
     }, [ref]);
 
-    // Canvas rendering function (녹음 중 실시간으로 호출됨)
+    // Canvas rendering function (called in real-time during recording)
     const drawWaveform = useCallback(() => {
       const canvas = canvasRef.current;
       if (!canvas) return;
@@ -75,12 +75,12 @@ const LiveStreamingStackRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStrea
       if (!ctx) return;
 
       const dpr = window.devicePixelRatio || 1;
-      // 캐싱된 크기 사용 (layout thrashing 방지)
+      // Use cached size (prevent layout thrashing)
       const containerWidth = sizeRef.current.width;
       const containerHeight = sizeRef.current.height;
       if (containerWidth === 0 || containerHeight === 0) return;
 
-      // appearance에서 스타일 추출 (기본값 적용)
+      // Extract styles from appearance (with defaults)
       const barColor = appearance?.barColor ?? DEFAULT_WAVEFORM_APPEARANCE.barColor;
       const barWidth = appearance?.barWidth ?? DEFAULT_WAVEFORM_APPEARANCE.barWidth;
       const barGap = appearance?.barGap ?? DEFAULT_WAVEFORM_APPEARANCE.barGap;
@@ -89,9 +89,9 @@ const LiveStreamingStackRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStrea
 
       const totalBarWidth = barWidth + barGap;
 
-      // 녹음 중이거나 데이터가 있을 때
+      // When recording or data exists
       if (isRecording || amplitudes.length > 0) {
-        // 고정 width 유지 (container 너비에 맞춤)
+        // Maintain fixed width (fit to container width)
         const canvasWidth = containerWidth;
 
         canvas.width = canvasWidth * dpr;
@@ -104,12 +104,12 @@ const LiveStreamingStackRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStrea
         // Set bar color
         ctx.fillStyle = barColor;
 
-        // Draw bars - 실제 amplitude 개수만큼 그리다가 canvas 너비 초과시 다운샘플링
+        // Draw bars - draw each amplitude until canvas width exceeded, then downsample
         const minBarHeight = 2;
         const maxBarsCount = Math.floor(canvasWidth / totalBarWidth);
 
-        // amplitude 개수가 maxBarsCount보다 적으면 그대로, 많으면 다운샘플링
-        // 이렇게 하면 처음엔 bar가 하나씩 쌓이다가 꽉 차면 압축 시작
+        // If amplitude count is less than maxBarsCount, use as-is; otherwise downsample
+        // This way bars stack one by one until full, then compression starts
         const barsCount = Math.min(amplitudes.length, maxBarsCount);
         const needsDownsample = amplitudes.length > maxBarsCount;
 
@@ -118,7 +118,7 @@ const LiveStreamingStackRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStrea
           let amplitude: number;
 
           if (needsDownsample) {
-            // 다운샘플링: 각 bar가 담당하는 amplitude 범위의 최대값 사용
+            // Downsampling: use max value from amplitude range covered by each bar
             const startIdx = Math.floor((i * amplitudes.length) / barsCount);
             const endIdx = Math.floor(((i + 1) * amplitudes.length) / barsCount);
 
@@ -128,14 +128,14 @@ const LiveStreamingStackRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStrea
             }
             amplitude = maxAmplitude;
           } else {
-            // 아직 다운샘플링 불필요: 1:1 매핑
+            // No downsampling needed yet: 1:1 mapping
             amplitude = amplitudes[i] || 0;
           }
 
           const barHeight = Math.max(minBarHeight, amplitude * containerHeight * barHeightScale);
 
-          // 픽셀 스냅핑: subpixel 렌더링으로 인한 일렁거림 방지
-          // Math.round로 정수 좌표에 정렬하여 antialiasing 아티팩트 최소화
+          // Pixel snapping: prevent flickering from subpixel rendering
+          // Align to integer coordinates with Math.round to minimize antialiasing artifacts
           const x = Math.round(i * totalBarWidth);
           const y = Math.round((containerHeight - barHeight) / 2);
           const roundedBarHeight = Math.round(barHeight);
@@ -144,10 +144,10 @@ const LiveStreamingStackRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStrea
         }
         ctx.fill();
       }
-      // 녹음 중이 아니고 데이터도 없으면 아무것도 그리지 않음
+      // Don't draw anything if not recording and no data
     }, [amplitudes, isRecording, appearance]);
 
-    // Track container size with ResizeObserver (크기를 캐싱하여 매 프레임 reflow 방지)
+    // Track container size with ResizeObserver (cache size to prevent per-frame reflow)
     useEffect(() => {
       const canvas = canvasRef.current;
       if (!canvas) return;
@@ -157,12 +157,12 @@ const LiveStreamingStackRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStrea
         if (!entry) return;
 
         const { width, height } = entry.contentRect;
-        // 크기 변경 없으면 무시
+        // Ignore if size unchanged
         if (sizeRef.current.width === width && sizeRef.current.height === height) return;
 
         sizeRef.current = { width, height };
 
-        // Container 크기 변경시 다시 그리기
+        // Redraw when container size changes
         if (!isRecording) {
           drawWaveform();
         }
@@ -172,7 +172,7 @@ const LiveStreamingStackRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStrea
       return () => resizeObserver.disconnect();
     }, [isRecording, drawWaveform]);
 
-    // Animation loop when recording (매 프레임마다 실행되어 실시간 업데이트)
+    // Animation loop when recording (runs every frame for real-time updates)
     useEffect(() => {
       if (isRecording && !isPaused) {
         const draw = () => {

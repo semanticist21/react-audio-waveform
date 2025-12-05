@@ -13,7 +13,7 @@ function AudioWaveformPlayer() {
   const audioRef = useRef<HTMLAudioElement>(null);
   const audioUrlRef = useRef<string>("");
 
-  // 3분 mp3 파일을 Blob으로 로드하고 URL 생성
+  // Load 3-minute mp3 file as Blob and create URL
   useEffect(() => {
     fetch("/sample-3min.mp3")
       .then((res) => res.blob())
@@ -25,7 +25,7 @@ function AudioWaveformPlayer() {
       })
       .catch(console.error);
 
-    // Cleanup: URL 해제
+    // Cleanup: revoke URL
     return () => {
       if (audioUrlRef.current) {
         URL.revokeObjectURL(audioUrlRef.current);
@@ -33,7 +33,7 @@ function AudioWaveformPlayer() {
     };
   }, []);
 
-  // audio 이벤트 리스너 설정 (audioUrl이 설정된 후 실행)
+  // Setup audio event listeners (runs after audioUrl is set)
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || !audioUrl) return;
@@ -50,7 +50,7 @@ function AudioWaveformPlayer() {
     audio.addEventListener("play", handlePlay);
     audio.addEventListener("pause", handlePause);
 
-    // 초기 duration 설정
+    // Set initial duration
     if (audio.duration) {
       setDuration(audio.duration);
     }
@@ -124,7 +124,7 @@ function AudioWaveformPlayer() {
   return (
     <div className="flex h-screen w-full items-center justify-center bg-linear-to-br from-slate-900 to-slate-800 p-8">
       <div className="flex w-full max-w-3xl flex-col gap-6 rounded-3xl bg-linear-to-br from-slate-800 to-slate-900 p-8 shadow-2xl ring-1 ring-slate-700/50">
-        {/* 헤더 */}
+        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold text-white">Audio Waveform Player</h2>
@@ -144,7 +144,7 @@ function AudioWaveformPlayer() {
           </div>
         </div>
 
-        {/* Waveform 시각화 (playhead 포함) */}
+        {/* Waveform visualization (with playhead) */}
         <AudioWaveform
           blob={audioBlob}
           className="h-40 w-full rounded-xl bg-slate-950/50 p-4 ring-1 ring-slate-700/50 transition-all hover:ring-slate-600/50"
@@ -161,13 +161,13 @@ function AudioWaveformPlayer() {
           }}
         />
 
-        {/* 시간 표시 */}
+        {/* Time display */}
         <div className="flex items-center justify-between px-2 text-sm">
           <span className="font-mono text-slate-400">{formatTime(currentTime)}</span>
           <span className="font-mono text-slate-500">{formatTime(duration)}</span>
         </div>
 
-        {/* 플레이어 컨트롤 */}
+        {/* Player controls */}
         <div className="flex items-center justify-center gap-4">
           <button
             type="button"
@@ -199,7 +199,7 @@ function AudioWaveformPlayer() {
           </button>
         </div>
 
-        {/* 숨겨진 audio 요소 */}
+        {/* Hidden audio element */}
         {audioUrl && (
           // biome-ignore lint/a11y/useMediaCaption: Demo audio does not require captions
           <audio ref={audioRef} src={audioUrl} className="hidden" />
@@ -236,7 +236,7 @@ function AudioWaveformPlayer() {
   const [duration, setDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  // 오디오 파일을 Blob으로 로드하고 URL 생성
+  // Load audio file as Blob and create URL
   useEffect(() => {
     fetch("/sample-3min.mp3")
       .then((res) => res.blob())
@@ -247,7 +247,7 @@ function AudioWaveformPlayer() {
       .catch(console.error);
   }, []);
 
-  // audio 이벤트 리스너 설정
+  // Setup audio event listeners
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio || !audioUrl) return;
@@ -280,7 +280,7 @@ function AudioWaveformPlayer() {
     }
   };
 
-  // Waveform 클릭 시 해당 위치로 이동
+  // Seek to position when waveform is clicked
   const handleSeek = (time: number) => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -299,7 +299,7 @@ function AudioWaveformPlayer() {
     <div className="flex w-full max-w-3xl flex-col gap-6 rounded-3xl bg-slate-800 p-8">
       <h2 className="text-2xl font-bold text-white">Audio Waveform Player</h2>
 
-      {/* Waveform 시각화 (playhead 포함) */}
+      {/* Waveform visualization (with playhead) */}
       <AudioWaveform
         blob={audioBlob}
         className="h-40 w-full rounded-xl bg-slate-950/50 p-4"
@@ -316,13 +316,13 @@ function AudioWaveformPlayer() {
         }}
       />
 
-      {/* 시간 표시 */}
+      {/* Time display */}
       <div className="flex items-center justify-between text-sm">
         <span className="text-slate-400">{formatTime(currentTime)}</span>
         <span className="text-slate-500">{formatTime(duration)}</span>
       </div>
 
-      {/* 플레이어 컨트롤 */}
+      {/* Player controls */}
       <button
         type="button"
         onClick={togglePlay}
@@ -331,7 +331,7 @@ function AudioWaveformPlayer() {
         {isPlaying ? "Pause" : "Play"}
       </button>
 
-      {/* 숨겨진 audio 요소 */}
+      {/* Hidden audio element */}
       <audio ref={audioRef} src={audioUrl} className="hidden" />
     </div>
   );

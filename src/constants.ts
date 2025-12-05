@@ -1,7 +1,7 @@
 import type { WaveformAppearance } from "./types";
 
 // ============================================================================
-// 기본값 상수 - 웨이브폼 및 플레이헤드 기본 스타일
+// Default constants - Waveform and playhead default styles
 // ============================================================================
 
 export const DEFAULT_WAVEFORM_APPEARANCE: Required<WaveformAppearance> = {
@@ -9,7 +9,7 @@ export const DEFAULT_WAVEFORM_APPEARANCE: Required<WaveformAppearance> = {
   barWidth: 1,
   barGap: 1,
   barRadius: 0,
-  barHeightScale: 0.9,
+  barHeightScale: 0.95,
 };
 
 export const DEFAULT_PLAYHEAD_APPEARANCE = {
