@@ -2,17 +2,11 @@ import { type ForwardedRef, forwardRef, useEffect, useImperativeHandle, useRef }
 import type { WaveformAppearance } from "../../types.js";
 import { useAudioAnalyser } from "../use-audio-analyser.js";
 
-export interface LiveRecorderProps {
+export interface LiveRecorderProps extends React.CanvasHTMLAttributes<HTMLCanvasElement> {
   /**
    * MediaRecorder instance to visualize
    */
   mediaRecorder: MediaRecorder | null;
-  /**
-   * CSS class for styling. Use Tailwind classes:
-   * - text-* for bar color (inherited via currentColor)
-   * - bg-* for background color
-   */
-  className?: string;
   /**
    * Waveform appearance configuration
    */
@@ -49,7 +43,15 @@ export interface LiveRecorderRef {
  */
 export const LiveRecorder = forwardRef<LiveRecorderRef, LiveRecorderProps>(
   (
-    { mediaRecorder, className = "", appearance, fftSize = 2048, smoothingTimeConstant = 0.8, showIdleState = true },
+    {
+      mediaRecorder,
+      className = "",
+      appearance,
+      fftSize = 2048,
+      smoothingTimeConstant = 0.8,
+      showIdleState = true,
+      ...props
+    },
     ref: ForwardedRef<LiveRecorderRef>
   ) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -207,7 +209,9 @@ export const LiveRecorder = forwardRef<LiveRecorderRef, LiveRecorderProps>(
       }
     }, [mediaRecorder, appearance, showIdleState]);
 
-    return <canvas ref={canvasRef} className={`text-inherit ${className}`} aria-hidden="true" tabIndex={-1} />;
+    return (
+      <canvas ref={canvasRef} className={`text-inherit ${className}`} aria-hidden="true" tabIndex={-1} {...props} />
+    );
   }
 );
 
