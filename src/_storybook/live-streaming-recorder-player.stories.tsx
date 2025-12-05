@@ -6,10 +6,10 @@ import { useAudioRecorder } from "../recorder/use-audio-recorder";
 function LiveStreamingRecorderPlayer() {
   const { startRecording, stopRecording, pauseRecording, resumeRecording, mediaRecorder, isRecording, isPaused } =
     useAudioRecorder({
-      onRecordingComplete: (audioBlob) => {
-        // When recording completes, create Blob URL and play in new tab
-        const audioUrl = URL.createObjectURL(audioBlob);
-        window.open(audioUrl, "_blank");
+      onRecordingComplete: (_audioBlob) => {
+        // Uncomment to play audio in new tab when recording completes
+        // const audioUrl = URL.createObjectURL(audioBlob);
+        // window.open(audioUrl, "_blank");
       },
     });
 
@@ -49,10 +49,11 @@ function LiveStreamingRecorderPlayer() {
         </button>
 
         {/* Waveform display area with scrolling container */}
-        <LiveStreamingRecorder.Root mediaRecorder={mediaRecorder}>
-          <LiveStreamingRecorder.Container className="h-12 w-72 overflow-x-auto overflow-y-hidden rounded-lg bg-slate-100 [scrollbar-width:thin]">
-            <LiveStreamingRecorder.Canvas className="w-full h-full text-slate-600" />
-          </LiveStreamingRecorder.Container>
+        <LiveStreamingRecorder.Root
+          mediaRecorder={mediaRecorder}
+          className="h-12 w-72 overflow-x-auto overflow-y-hidden rounded-lg bg-slate-100 [scrollbar-width:thin]"
+        >
+          <LiveStreamingRecorder.Canvas className="w-full h-full text-slate-600" />
         </LiveStreamingRecorder.Root>
 
         {/* Stop button */}
@@ -122,10 +123,11 @@ function LiveStreamingRecorderPlayerWithPlay() {
           )}
         </button>
 
-        <LiveStreamingRecorder.Root mediaRecorder={mediaRecorder}>
-          <LiveStreamingRecorder.Container className="h-12 w-72 overflow-x-auto overflow-y-hidden rounded-lg bg-slate-100 [scrollbar-width:thin]">
-            <LiveStreamingRecorder.Canvas className="w-full h-full text-slate-600" />
-          </LiveStreamingRecorder.Container>
+        <LiveStreamingRecorder.Root
+          mediaRecorder={mediaRecorder}
+          className="h-12 w-72 overflow-x-auto overflow-y-hidden rounded-lg bg-slate-100 [scrollbar-width:thin]"
+        >
+          <LiveStreamingRecorder.Canvas className="w-full h-full text-slate-600" />
         </LiveStreamingRecorder.Root>
 
         <button
@@ -206,10 +208,11 @@ function LiveStreamingRecorderPlayerWithDownload() {
           )}
         </button>
 
-        <LiveStreamingRecorder.Root mediaRecorder={mediaRecorder}>
-          <LiveStreamingRecorder.Container className="h-12 w-72 overflow-x-auto overflow-y-hidden rounded-lg bg-slate-100 [scrollbar-width:thin]">
-            <LiveStreamingRecorder.Canvas className="w-full h-full text-slate-600" />
-          </LiveStreamingRecorder.Container>
+        <LiveStreamingRecorder.Root
+          mediaRecorder={mediaRecorder}
+          className="h-12 w-72 overflow-x-auto overflow-y-hidden rounded-lg bg-slate-100 [scrollbar-width:thin]"
+        >
+          <LiveStreamingRecorder.Canvas className="w-full h-full text-slate-600" />
         </LiveStreamingRecorder.Root>
 
         <button
@@ -259,8 +262,9 @@ export const Default: Story = {
   const { startRecording, stopRecording, pauseRecording, resumeRecording, mediaRecorder, isRecording, isPaused } =
     useAudioRecorder({
       onRecordingComplete: (audioBlob) => {
-        const audioUrl = URL.createObjectURL(audioBlob);
-        window.open(audioUrl, "_blank");
+        // Uncomment to play audio in new tab when recording completes
+        // const audioUrl = URL.createObjectURL(audioBlob);
+        // window.open(audioUrl, "_blank");
       },
     });
 
@@ -282,14 +286,15 @@ export const Default: Story = {
         </button>
 
         {/* Timeline waveform visualization with scrolling container */}
-        <LiveStreamingRecorder.Root mediaRecorder={mediaRecorder}>
-          <LiveStreamingRecorder.Container className="h-12 w-72 overflow-x-auto overflow-y-hidden rounded-lg bg-slate-100 [scrollbar-width:thin]">
-            {/* bg-slate-100: scrolling container background */}
-            <LiveStreamingRecorder.Canvas
-              className="w-full h-full text-slate-600"
-              // text-slate-600: bar color (inherited via text-inherit)
-            />
-          </LiveStreamingRecorder.Container>
+        <LiveStreamingRecorder.Root
+          mediaRecorder={mediaRecorder}
+          className="h-12 w-72 overflow-x-auto overflow-y-hidden rounded-lg bg-slate-100 [scrollbar-width:thin]"
+          // bg-slate-100: scrolling container background
+        >
+          <LiveStreamingRecorder.Canvas
+            className="w-full h-full text-slate-600"
+            // text-slate-600: bar color (inherited via text-inherit)
+          />
         </LiveStreamingRecorder.Root>
 
         <button type="button" onClick={stopRecording} disabled={!isRecording}>
@@ -391,6 +396,90 @@ export const WithDownload: StoryObj<typeof LiveStreamingRecorderPlayerWithDownlo
           </button>
         </div>
       )}
+    </div>
+  );
+}`,
+      },
+    },
+  },
+};
+
+function LiveStreamingRecorderPlayerFixedWidth() {
+  const { startRecording, stopRecording, pauseRecording, resumeRecording, mediaRecorder, isRecording, isPaused } =
+    useAudioRecorder();
+
+  const handleRecordClick = () => {
+    if (!isRecording) {
+      startRecording();
+    } else if (isPaused) {
+      resumeRecording();
+    } else {
+      pauseRecording();
+    }
+  };
+
+  return (
+    <div className="flex h-screen w-full items-center justify-center bg-slate-100">
+      <div className="flex h-24 w-fit items-center gap-4 rounded-2xl bg-white px-5 shadow-lg">
+        <button
+          type="button"
+          onClick={handleRecordClick}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white shadow-md"
+        >
+          {!isRecording ? (
+            <div className="h-4 w-4 rounded-full bg-red-500" />
+          ) : isPaused ? (
+            <div className="h-4 w-4 rounded-full bg-red-500" />
+          ) : (
+            <div className="flex gap-0.5">
+              <div className="h-4 w-1 rounded-sm bg-orange-500" />
+              <div className="h-4 w-1 rounded-sm bg-orange-500" />
+            </div>
+          )}
+        </button>
+
+        {/* Fixed width waveform (bars compress as recording grows) */}
+        <LiveStreamingRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 rounded-lg bg-slate-100">
+          <LiveStreamingRecorder.Canvas className="w-full h-full text-slate-600" growWidth={false} />
+        </LiveStreamingRecorder.Root>
+
+        <button
+          type="button"
+          onClick={stopRecording}
+          disabled={!isRecording}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white shadow-md disabled:opacity-40"
+        >
+          <div className="h-3.5 w-3.5 rounded-sm bg-slate-700" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export const FixedWidth: StoryObj<typeof LiveStreamingRecorderPlayerFixedWidth> = {
+  render: () => <LiveStreamingRecorderPlayerFixedWidth />,
+  parameters: {
+    docs: {
+      source: {
+        code: `function LiveStreamingRecorderPlayerFixedWidth() {
+  const { startRecording, stopRecording, mediaRecorder, isRecording } = useAudioRecorder();
+
+  return (
+    <div>
+      <button onClick={!isRecording ? startRecording : stopRecording}>
+        {isRecording ? "Stop" : "Record"}
+      </button>
+
+      {/* Fixed width mode: bars compress as recording grows */}
+      <LiveStreamingRecorder.Root
+        mediaRecorder={mediaRecorder}
+        className="h-12 w-72 rounded-lg bg-slate-100"
+      >
+        <LiveStreamingRecorder.Canvas
+          className="w-full h-full text-slate-600"
+          growWidth={false}  // Disable scrolling, bars compress instead
+        />
+      </LiveStreamingRecorder.Root>
     </div>
   );
 }`,
