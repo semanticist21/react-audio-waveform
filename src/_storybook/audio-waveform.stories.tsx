@@ -15,7 +15,7 @@ function AudioWaveformPlayer() {
 
   // Load 3-minute mp3 file as Blob and create URL
   useEffect(() => {
-    fetch("/sample-3min.mp3")
+    fetch("/sample-5min.mp3")
       .then((res) => res.blob())
       .then((blob) => {
         setAudioBlob(blob);
@@ -221,6 +221,37 @@ export default meta;
 
 type Story = StoryObj<typeof AudioWaveformPlayer>;
 
+export const Simple: Story = {
+  render: () => {
+    const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+
+    useEffect(() => {
+      fetch("/sample-5min.mp3")
+        .then((res) => res.blob())
+        .then(setAudioBlob)
+        .catch(console.error);
+    }, []);
+
+    if (!audioBlob) return <p>Loading...</p>;
+
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <AudioWaveform blob={audioBlob} style={{ width: 800, height: 128 }} />
+      </div>
+    );
+  },
+  parameters: {
+    layout: "fullscreen",
+    docs: {
+      source: {
+        code: `import { AudioWaveform } from "react-audio-waveform";
+
+<AudioWaveform blob={audioBlob} style={{ width: 800, height: 128 }} />`,
+      },
+    },
+  },
+};
+
 export const Default: Story = {
   parameters: {
     docs: {
@@ -238,7 +269,7 @@ function AudioWaveformPlayer() {
 
   // Load audio file as Blob and create URL
   useEffect(() => {
-    fetch("/sample-3min.mp3")
+    fetch("/sample-5min.mp3")
       .then((res) => res.blob())
       .then((blob) => {
         setAudioBlob(blob);

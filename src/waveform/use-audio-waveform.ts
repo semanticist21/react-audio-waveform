@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { decodeAudioBlob, getAudioData } from "./util-audio-decoder";
 import { unwrapPromise } from "./util-suspense";
 
@@ -42,11 +42,17 @@ export interface UseAudioWaveformReturn {
 export function useAudioWaveform(options: UseAudioWaveformOptions): UseAudioWaveformReturn {
   const { blob, sampleCount: userSampleCount, suspense = false } = options;
 
-  // Calculate default sample count (based on window width)
-  const sampleCount = useMemo(
-    () => userSampleCount || Math.max(200, Math.ceil(window.innerWidth / 4)),
-    [userSampleCount]
-  );
+  // SSR-safe: default sample count based on window width, set once in useEffect
+  const [sampleCount, setSampleCount] = useState(userSampleCount || 200);
+  const sampleCountInitializedRef = useRef(!!userSampleCount);
+
+  useEffect(() => {
+    // 사용자가 sampleCount를 지정하지 않았고, 아직 초기화 안된 경우에만 설정
+    if (!sampleCountInitializedRef.current) {
+      setSampleCount(Math.max(200, Math.ceil(window.innerWidth / 4)));
+      sampleCountInitializedRef.current = true;
+    }
+  }, []);
 
   const [peaks, setPeaks] = useState<number[] | null>(null);
   const [error, setError] = useState<Error | null>(null);

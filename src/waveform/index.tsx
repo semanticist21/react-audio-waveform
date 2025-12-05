@@ -8,11 +8,9 @@ import { WaveformRenderer, type WaveformRendererRef } from "./waveform-renderer"
 // AudioWaveform - Unified Component (with optional Suspense support)
 // ============================================================================
 
-export interface AudioWaveformProps {
+export interface AudioWaveformProps extends React.CanvasHTMLAttributes<HTMLCanvasElement> {
   /** Audio blob to visualize */
   blob: Blob | null;
-  /** Additional class name for the canvas */
-  className?: string;
   /** Waveform appearance configuration (barColor, barWidth, playheadColor, etc.) */
   appearance?: AudioWaveformAppearance;
   /** Enable Suspense mode (requires Suspense boundary in parent) */
@@ -30,7 +28,7 @@ export interface AudioWaveformRef {
 }
 
 export const AudioWaveform = forwardRef<AudioWaveformRef, AudioWaveformProps>(function AudioWaveform(
-  { blob, className, appearance, suspense = false, currentTime, duration, onSeek },
+  { blob, appearance, suspense = false, currentTime, duration, onSeek, ...props },
   ref
 ) {
   const [peaks, setPeaks] = useState<number[] | null>(null);
@@ -98,11 +96,11 @@ export const AudioWaveform = forwardRef<AudioWaveformRef, AudioWaveformProps>(fu
     <WaveformRenderer
       ref={rendererRef}
       peaks={finalPeaks}
-      className={className}
       appearance={appearance}
       currentTime={currentTime}
       duration={duration}
       onSeek={onSeek}
+      {...props}
     />
   );
 });

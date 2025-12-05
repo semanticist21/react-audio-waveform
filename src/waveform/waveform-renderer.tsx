@@ -6,11 +6,9 @@ import type { AudioWaveformAppearance } from "../types";
 // Common Waveform Renderer (A)
 // ============================================================================
 
-export interface WaveformRendererProps {
+export interface WaveformRendererProps extends React.CanvasHTMLAttributes<HTMLCanvasElement> {
   /** Normalized peak data to visualize */
   peaks: number[] | null;
-  /** Additional class name for the canvas */
-  className?: string;
   /** Waveform appearance configuration (barColor, barWidth, playheadColor, etc.) */
   appearance?: AudioWaveformAppearance;
   /** Current playback time in seconds */
@@ -26,7 +24,7 @@ export interface WaveformRendererRef {
 }
 
 export const WaveformRenderer = forwardRef<WaveformRendererRef, WaveformRendererProps>(function WaveformRenderer(
-  { peaks, className = "", appearance, currentTime, duration, onSeek },
+  { peaks, appearance, currentTime, duration, onSeek, onClick, style, ...props },
   ref
 ) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -149,11 +147,11 @@ export const WaveformRenderer = forwardRef<WaveformRendererRef, WaveformRenderer
   return (
     <canvas
       ref={canvasRef}
-      className={className}
       role="img"
       aria-label="Audio waveform"
       onClick={handleClick}
-      style={{ cursor: onSeek ? "pointer" : undefined }}
+      style={{ cursor: onSeek ? "pointer" : undefined, ...style }}
+      {...props}
     />
   );
 });
