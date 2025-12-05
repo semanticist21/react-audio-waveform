@@ -5,13 +5,7 @@ import { useAudioRecorder } from "../recorder/use-audio-recorder";
 
 function LiveRecorderPlayer() {
   const { startRecording, stopRecording, pauseRecording, resumeRecording, mediaRecorder, isRecording, isPaused } =
-    useAudioRecorder({
-      onRecordingComplete: (audioBlob) => {
-        // When recording completes, create Blob URL and play in new tab
-        const audioUrl = URL.createObjectURL(audioBlob);
-        window.open(audioUrl, "_blank");
-      },
-    });
+    useAudioRecorder();
 
   // Recording start/pause/resume button handler
   const handleRecordClick = () => {
@@ -246,10 +240,10 @@ export const Default: Story = {
         code: `function LiveRecorderPlayer() {
   const { startRecording, stopRecording, pauseRecording, resumeRecording, mediaRecorder, isRecording, isPaused } =
     useAudioRecorder({
-      onRecordingComplete: (audioBlob) => {
-        const audioUrl = URL.createObjectURL(audioBlob);
-        window.open(audioUrl, "_blank");
-      },
+      // onRecordingComplete: (audioBlob) => {
+      //   const audioUrl = URL.createObjectURL(audioBlob);
+      //   window.open(audioUrl, "_blank");
+      // },
     });
 
   const handleRecordClick = () => {
