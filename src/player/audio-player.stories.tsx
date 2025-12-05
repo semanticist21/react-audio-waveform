@@ -6,7 +6,7 @@ import rawSource from "./audio-player.stories.tsx?raw";
 function AudioPlayer() {
   const {
     startRecording,
-    stopRecording: _,
+    stopRecording,
     pauseRecording,
     resumeRecording,
     mediaRecorder,
@@ -14,6 +14,7 @@ function AudioPlayer() {
     isPaused,
   } = useAudioRecorder();
 
+  // 녹음 시작/일시정지/재개 버튼 핸들러
   const handleRecordClick = () => {
     if (!isRecording) {
       startRecording();
@@ -26,23 +27,43 @@ function AudioPlayer() {
 
   return (
     <div className="flex h-screen w-full items-center justify-center bg-slate-100">
-      <div className="flex h-24 w-[480px] items-center gap-4 rounded-2xl bg-white px-5 shadow-lg">
+      <div className="flex h-24 w-fit items-center gap-4 rounded-2xl bg-white px-5 shadow-lg">
+        {/* 녹음/일시정지 버튼 */}
         <button
           type="button"
           onClick={handleRecordClick}
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white shadow-md"
         >
           {!isRecording ? (
+            // 녹음 시작: 빨간 원
             <div className="h-4 w-4 rounded-full bg-red-500" />
           ) : isPaused ? (
+            // 일시정지 상태에서 재개: 빨간 원
             <div className="h-4 w-4 rounded-full bg-red-500" />
           ) : (
-            <div className="h-3 w-3 rounded-sm bg-orange-500" />
+            // 녹음 중 일시정지: 두 개의 세로 막대
+            <div className="flex gap-0.5">
+              <div className="h-4 w-1 rounded-sm bg-orange-500" />
+              <div className="h-4 w-1 rounded-sm bg-orange-500" />
+            </div>
           )}
         </button>
-        <div className="h-12 flex-1 overflow-hidden rounded-lg bg-slate-100">
-          <RecordingWaveform mediaRecorder={mediaRecorder} className="h-full text-slate-400 [scrollbar-width:thin]" />
-        </div>
+
+        {/* 파형 표시 영역 */}
+        <RecordingWaveform
+          mediaRecorder={mediaRecorder}
+          className="h-12 w-72 rounded-lg bg-slate-100 text-slate-400 [scrollbar-width:thin]"
+        />
+
+        {/* 정지 버튼 */}
+        <button
+          type="button"
+          onClick={stopRecording}
+          disabled={!isRecording}
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white shadow-md disabled:opacity-40"
+        >
+          <div className="h-3.5 w-3.5 rounded-sm bg-slate-700" />
+        </button>
       </div>
     </div>
   );
