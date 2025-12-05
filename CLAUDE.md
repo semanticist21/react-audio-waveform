@@ -25,7 +25,8 @@ bun run fix             # Fix linting issues with Biome
 src/
 ├── index.tsx              # Library entry point (exports all public APIs)
 ├── index.css              # Tailwind import (Storybook only)
-├── types.ts               # Shared appearance types (WaveformAppearance, defaults)
+├── types.ts               # Shared appearance types (WaveformAppearance, AudioWaveformAppearance)
+├── constants.ts           # Default appearance values (DEFAULT_WAVEFORM_APPEARANCE, DEFAULT_PLAYHEAD_APPEARANCE)
 ├── waveform/              # Static waveform visualization
 │   ├── index.tsx                  # Main AudioWaveform component
 │   ├── use-audio-waveform.ts      # Headless hook
@@ -34,6 +35,8 @@ src/
 │   └── util-suspense.ts           # React Suspense cache
 ├── recorder/              # Live recording components
 │   ├── live-recorder/         # Real-time frequency bars
+│   │   ├── index.tsx              # LiveRecorder component
+│   │   ├── live-recorder-context.tsx # Context provider
 │   │   └── use-live-audio-data.ts # Headless hook
 │   ├── live-streaming/        # Both timeline recorders share this folder
 │   │   ├── types.ts               # Shared recorder types
@@ -240,7 +243,9 @@ function StackRecorderExample() {
 
 ## Key Implementation Details
 
-- **Appearance System:** All waveform components use `appearance` prop with `WaveformAppearance` type (barColor, barWidth, barGap, barRadius, barHeightScale). Defaults exported as `DEFAULT_WAVEFORM_APPEARANCE` from `types.ts`.
+- **Appearance System:** All waveform components use `appearance` prop with `WaveformAppearance` type. Defaults exported from `constants.ts`:
+  - `DEFAULT_WAVEFORM_APPEARANCE`: barColor="#3b82f6", barWidth=1, barGap=1, barRadius=0, barHeightScale=0.95
+  - `DEFAULT_PLAYHEAD_APPEARANCE`: playheadColor="#ef4444", playheadWidth=2
 - **Audio Decoding:** Web Audio API (`AudioContext.decodeAudioData`) for blob processing
 - **Device Pixel Ratio:** Automatic DPR support for sharp canvas rendering on retina displays
 - **Growing Canvas Width:** `LiveStreamingRecorder.Canvas` supports `growWidth` prop - when true, canvas grows horizontally as recording continues (Voice Memos style with scrolling)
