@@ -1,4 +1,4 @@
-import { forwardRef, useEffect, useMemo, useRef, useState } from "react";
+import { forwardRef, useEffect, useRef, useState } from "react";
 import type { AudioWaveformAppearance } from "../types";
 import { decodeAudioBlob, getAudioData } from "./util-audio-decoder";
 import { unwrapPromise } from "./util-suspense";
@@ -27,17 +27,27 @@ export interface AudioWaveformRef {
   canvas: HTMLCanvasElement | null;
 }
 
+// SSR-safe 기본값 (서버에서는 500, 클라이언트에서 window.innerWidth로 업데이트)
+const DEFAULT_SAMPLE_COUNT = 500;
+
 export const AudioWaveform = forwardRef<AudioWaveformRef, AudioWaveformProps>(function AudioWaveform(
   { blob, appearance, suspense = false, currentTime, duration, onSeek, ...props },
   ref
 ) {
   const [peaks, setPeaks] = useState<number[] | null>(null);
   const [error, setError] = useState<Error | null>(null);
+  const [sampleCount, setSampleCount] = useState(DEFAULT_SAMPLE_COUNT);
+  const sampleCountInitializedRef = useRef(false);
   const blobRef = useRef<Blob | null>(null);
   const rendererRef = useRef<WaveformRendererRef>(null);
 
-  // sampleCount: Fetch samples matching screen width for sharp display on high-resolution screens
-  const sampleCount = useMemo(() => Math.max(500, Math.ceil(window.innerWidth)), []);
+  // SSR-safe: 클라이언트에서만 window.innerWidth 사용
+  useEffect(() => {
+    if (!sampleCountInitializedRef.current) {
+      setSampleCount(Math.max(500, Math.ceil(window.innerWidth)));
+      sampleCountInitializedRef.current = true;
+    }
+  }, []);
 
   // Forward ref to WaveformRenderer's canvas
   useEffect(() => {
