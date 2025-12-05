@@ -269,20 +269,21 @@ export const Default: Story = {
   return (
     <div>
       {/* Waveform with playhead */}
-      <div className="h-32 rounded-lg bg-slate-100">
-        <AudioWaveform
-          blob={audioBlob}
-          className="h-full"
-          currentTime={currentTime}
-          duration={duration}
-          onSeek={handleSeek}
-          appearance={{
-            barColor: "#3b82f6",
-            playheadColor: "#3b82f6",
-            playheadWidth: 2,
-          }}
-        />
-      </div>
+      <AudioWaveform
+        blob={audioBlob}
+        className="h-32 rounded-lg bg-slate-100"
+        currentTime={currentTime}
+        duration={duration}
+        onSeek={handleSeek}
+        appearance={{
+          barColor: "#3b82f6",
+          barWidth: 3,
+          barGap: 1.5,
+          barRadius: 2,
+          playheadColor: "#ef4444",
+          playheadWidth: 3,
+        }}
+      />
 
       {/* Audio element */}
       <audio ref={audioRef} controls>

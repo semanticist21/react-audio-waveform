@@ -50,7 +50,7 @@ function LiveStreamingRecorderPlayer() {
 
         {/* Waveform display area */}
         <LiveStreamingRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 bg-slate-100 rounded-sm">
-          <LiveStreamingRecorder.Canvas className="text-slate-600" />
+          <LiveStreamingRecorder.Canvas />
         </LiveStreamingRecorder.Root>
 
         {/* Stop button */}
@@ -278,7 +278,7 @@ export const Default: Story = {
 
         {/* Timeline waveform visualization */}
         <LiveStreamingRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 bg-slate-100 rounded-sm">
-          <LiveStreamingRecorder.Canvas className="text-slate-600" />
+          <LiveStreamingRecorder.Canvas />
         </LiveStreamingRecorder.Root>
 
         <button type="button" onClick={stopRecording} disabled={!isRecording}>

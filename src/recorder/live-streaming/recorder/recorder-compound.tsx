@@ -93,10 +93,12 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
     ref
   ) {
     const { amplitudes, isRecording, isPaused } = useLiveStreamingRecorderContext();
+
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const animationRef = useRef<number | null>(null);
     const containerSizeRef = useRef({ width: 0, height: 0 });
     const containerRef = useRef<HTMLElement | null>(null);
+
     // growWidth 모드에서 canvas width는 절대 줄어들지 않도록 추적
     const prevCanvasWidthRef = useRef<number>(0);
 
@@ -127,6 +129,7 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
       if (!ctx) return;
 
       const dpr = window.devicePixelRatio || 1;
+
       // Container의 실제 크기 가져오기 (parent element의 크기 사용)
       const container = canvas.parentElement;
       const containerWidth = container?.clientWidth || canvas.clientWidth;

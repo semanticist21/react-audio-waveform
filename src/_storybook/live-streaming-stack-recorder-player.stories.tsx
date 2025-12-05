@@ -111,14 +111,8 @@ export const Default: Story = {
         </button>
 
         {/* Fixed width waveform (bars compress as recording grows) */}
-        <LiveStreamingStackRecorder.Root
-          mediaRecorder={mediaRecorder}
-          className="h-12 w-72 rounded-lg bg-slate-100 rounded-sm"
-        >
-          <LiveStreamingStackRecorder.Canvas
-            className="text-slate-600"
-            // text-slate-600: bar color (inherited via text-inherit)
-          />
+        <LiveStreamingStackRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 bg-slate-100 rounded-sm">
+          <LiveStreamingStackRecorder.Canvas className="text-slate-600" />
         </LiveStreamingStackRecorder.Root>
 
         <button type="button" onClick={stopRecording} disabled={!isRecording}>
@@ -186,11 +180,8 @@ function LiveStreamingStackRecorderPlayerWithPlay() {
           )}
         </button>
 
-        <LiveStreamingStackRecorder.Root
-          mediaRecorder={mediaRecorder}
-          className="h-12 w-72 rounded-lg bg-slate-100 rounded-sm"
-        >
-          <LiveStreamingStackRecorder.Canvas className="text-slate-600" />
+        <LiveStreamingStackRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 rounded-sm bg-slate-100">
+          <LiveStreamingStackRecorder.Canvas />
         </LiveStreamingStackRecorder.Root>
 
         <button
@@ -252,11 +243,8 @@ export const WithPlay: StoryObj<typeof LiveStreamingStackRecorderPlayerWithPlay>
           {/* Record/pause button UI */}
         </button>
 
-        <LiveStreamingStackRecorder.Root
-          mediaRecorder={mediaRecorder}
-          className="h-12 w-72 rounded-lg bg-slate-100 rounded-sm"
-        >
-          <LiveStreamingStackRecorder.Canvas className="text-slate-600" />
+        <LiveStreamingStackRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 rounded-sm bg-slate-100">
+          <LiveStreamingStackRecorder.Canvas />
         </LiveStreamingStackRecorder.Root>
 
         <button type="button" onClick={stopRecording} disabled={!isRecording}>
@@ -335,10 +323,7 @@ function LiveStreamingStackRecorderPlayerWithDownload() {
           )}
         </button>
 
-        <LiveStreamingStackRecorder.Root
-          mediaRecorder={mediaRecorder}
-          className="h-12 w-72 rounded-lg bg-slate-100 rounded-sm"
-        >
+        <LiveStreamingStackRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 rounded-sm bg-slate-100">
           <LiveStreamingStackRecorder.Canvas className="text-slate-600" />
         </LiveStreamingStackRecorder.Root>
 
@@ -409,10 +394,7 @@ export const WithDownload: StoryObj<typeof LiveStreamingStackRecorderPlayerWithD
           {/* Record/pause button UI */}
         </button>
 
-        <LiveStreamingStackRecorder.Root
-          mediaRecorder={mediaRecorder}
-          className="h-12 w-72 rounded-lg bg-slate-100 rounded-sm"
-        >
+        <LiveStreamingStackRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 rounded-sm bg-slate-100">
           <LiveStreamingStackRecorder.Canvas className="text-slate-600" />
         </LiveStreamingStackRecorder.Root>
 
