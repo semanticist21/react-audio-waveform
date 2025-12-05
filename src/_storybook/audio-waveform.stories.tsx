@@ -115,15 +115,15 @@ function AudioWaveformPlayer() {
 
   if (!audioBlob) {
     return (
-      <div className="flex h-screen w-full items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800">
+      <div className="flex h-screen w-full items-center justify-center bg-linear-to-br from-slate-900 to-slate-800">
         <p className="text-slate-400">Loading audio...</p>
       </div>
     );
   }
 
   return (
-    <div className="flex h-screen w-full items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800 p-8">
-      <div className="flex w-full max-w-3xl flex-col gap-6 rounded-3xl bg-gradient-to-br from-slate-800 to-slate-900 p-8 shadow-2xl ring-1 ring-slate-700/50">
+    <div className="flex h-screen w-full items-center justify-center bg-linear-to-br from-slate-900 to-slate-800 p-8">
+      <div className="flex w-full max-w-3xl flex-col gap-6 rounded-3xl bg-linear-to-br from-slate-800 to-slate-900 p-8 shadow-2xl ring-1 ring-slate-700/50">
         {/* 헤더 */}
         <div className="flex items-center justify-between">
           <div>

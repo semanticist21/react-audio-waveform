@@ -122,15 +122,22 @@ const LiveStreamingStackRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStrea
         // Set bar color
         ctx.fillStyle = barColor;
 
-        // Draw bars - amplitudes를 canvas width에 맞춰 압축
+        // Draw bars - amplitudes를 canvas width에 맞춰 다운샘플링
         const minBarHeight = 2;
         const barsCount = Math.floor(canvasWidth / totalBarWidth);
-        const step = amplitudes.length / barsCount;
 
         for (let i = 0; i < barsCount; i++) {
-          const amplitudeIndex = Math.min(Math.floor(i * step), amplitudes.length - 1);
-          const amplitude = amplitudes[amplitudeIndex] || 0;
-          const barHeight = Math.max(minBarHeight, amplitude * containerHeight * 0.9);
+          // 각 bar가 담당하는 amplitude 범위 계산 (downsample 방식)
+          const startIdx = Math.floor((i * amplitudes.length) / barsCount);
+          const endIdx = Math.floor(((i + 1) * amplitudes.length) / barsCount);
+
+          // 해당 범위의 최대값 사용 (waveform 표준 방식)
+          let maxAmplitude = 0;
+          for (let j = startIdx; j < endIdx; j++) {
+            maxAmplitude = Math.max(maxAmplitude, amplitudes[j] || 0);
+          }
+
+          const barHeight = Math.max(minBarHeight, maxAmplitude * containerHeight * 0.9);
 
           const x = i * totalBarWidth;
           const y = (containerHeight - barHeight) / 2;

@@ -47,16 +47,22 @@ export function useRecordingAmplitudes(options: UseRecordingAmplitudesOptions): 
     setAmplitudes([]);
   }, []);
 
-  // Sample amplitude periodically
+  // MediaRecorder 인스턴스가 변경될 때만 amplitudes 초기화 (새로운 녹음 시작)
+  const prevMediaRecorderRef = useRef<MediaRecorder | null>(null);
+  useEffect(() => {
+    if (mediaRecorder !== prevMediaRecorderRef.current) {
+      // MediaRecorder 인스턴스 변경 = 새로운 녹음 시작 → amplitudes 초기화
+      amplitudeDataRef.current = [];
+      setAmplitudes([]);
+      prevMediaRecorderRef.current = mediaRecorder;
+    }
+  }, [mediaRecorder]);
+
+  // Sample amplitude periodically (pause/resume 시 amplitudes 보존)
   useEffect(() => {
     if (!mediaRecorder) {
-      clearAmplitudes();
       return;
     }
-
-    // Reset data when starting new recording
-    amplitudeDataRef.current = [];
-    setAmplitudes([]);
 
     const sampleAmplitude = () => {
       const analyser = analyserRef.current;
@@ -95,7 +101,7 @@ export function useRecordingAmplitudes(options: UseRecordingAmplitudesOptions): 
       }
     };
 
-    // pause/resume event handlers
+    // pause/resume event handlers (sampling만 중단/재개, amplitudes는 보존)
     const handlePause = () => stopSampling();
     const handleResume = () => startSampling();
 
@@ -113,7 +119,7 @@ export function useRecordingAmplitudes(options: UseRecordingAmplitudesOptions): 
       mediaRecorder.removeEventListener("resume", handleResume);
       stopSampling();
     };
-  }, [mediaRecorder, sampleInterval, analyserRef, dataArrayRef, bufferLengthRef, clearAmplitudes]);
+  }, [mediaRecorder, sampleInterval, analyserRef, dataArrayRef, bufferLengthRef]);
 
   return {
     amplitudes,

@@ -44,8 +44,8 @@ const LiveStreamingRecorderRoot = forwardRef<HTMLDivElement, LiveStreamingRecord
       document.head.appendChild(styleElement);
     }, []);
 
-    // 기본 스크롤바 스타일 적용 (LiveStreamingRecorder는 scrolling 컨셉)
-    const mergedClassName = `live-streaming-recorder-overlay-scrollbar [scrollbar-width:thin] [scrollbar-color:rgba(148,163,184,0.3)_transparent] ${className}`;
+    // 기본 스크롤바 스타일 및 overflow 적용 (LiveStreamingRecorder는 scrolling 컨셉)
+    const mergedClassName = `overflow-x-auto overflow-y-hidden live-streaming-recorder-overlay-scrollbar [scrollbar-width:thin] [scrollbar-color:rgba(148,163,184,0.3)_transparent] ${className}`;
 
     return (
       <div ref={ref} className={mergedClassName} style={style} {...props}>
@@ -97,6 +97,8 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
     const animationRef = useRef<number | null>(null);
     const containerSizeRef = useRef({ width: 0, height: 0 });
     const containerRef = useRef<HTMLElement | null>(null);
+    // growWidth 모드에서 canvas width는 절대 줄어들지 않도록 추적
+    const prevCanvasWidthRef = useRef<number>(0);
 
     // Forward ref
     useEffect(() => {
@@ -109,6 +111,13 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
       }
     }, [ref]);
 
+    // 새로운 녹음 시작 시 canvas width ref 초기화
+    useEffect(() => {
+      if (amplitudes.length === 0) {
+        prevCanvasWidthRef.current = 0;
+      }
+    }, [amplitudes.length]);
+
     // Canvas rendering function (녹음 중 실시간으로 호출됨)
     const drawWaveform = useCallback(() => {
       const canvas = canvasRef.current;
@@ -118,10 +127,10 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
       if (!ctx) return;
 
       const dpr = window.devicePixelRatio || 1;
-      // 매번 최신 container 크기를 가져옴 (scrolling을 위해 중요)
-      const rect = canvas.getBoundingClientRect();
-      const containerWidth = rect.width;
-      const containerHeight = rect.height;
+      // Container의 실제 크기 가져오기 (parent element의 크기 사용)
+      const container = canvas.parentElement;
+      const containerWidth = container?.clientWidth || canvas.clientWidth;
+      const containerHeight = container?.clientHeight || canvas.clientHeight;
 
       // barConfig에서 bar 스타일 값 추출
       const barWidth = barConfig?.width
@@ -151,8 +160,13 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
         let canvasWidth: number;
         if (growWidth) {
           // 데이터에 맞춰 canvas가 늘어남 (scrolling 가능)
+          // pause/resume 시에도 정확한 width 유지를 위해 amplitudes 길이로만 계산
           const requiredWidth = amplitudes.length * totalBarWidth;
-          canvasWidth = Math.max(requiredWidth, containerWidth);
+          // containerWidth는 최소값으로만 사용 (빈 상태일 때 너무 작아지는 것 방지)
+          const calculatedWidth = amplitudes.length > 0 ? requiredWidth : containerWidth;
+          // growWidth 모드에서는 canvas width가 절대 줄어들지 않도록 (pause/resume 안정성)
+          canvasWidth = Math.max(calculatedWidth, prevCanvasWidthRef.current);
+          prevCanvasWidthRef.current = canvasWidth;
           // CSS 레이아웃 크기도 명시적으로 설정 (스크롤 가능하게)
           canvas.style.width = `${canvasWidth}px`;
         } else {
