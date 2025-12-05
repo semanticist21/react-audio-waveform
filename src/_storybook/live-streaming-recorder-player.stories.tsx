@@ -57,11 +57,10 @@ function LiveStreamingRecorderPlayer() {
           )}
         </button>
 
-        {/* Waveform display area */}
-        <LiveStreamingRecorder
-          mediaRecorder={mediaRecorder}
-          className="h-12 w-72 rounded-lg bg-slate-100 text-slate-600 [scrollbar-width:thin]"
-        />
+        {/* Waveform display area with scrolling container */}
+        <div className="h-12 w-72 overflow-x-auto overflow-y-hidden rounded-lg bg-slate-100 [scrollbar-width:thin]">
+          <LiveStreamingRecorder mediaRecorder={mediaRecorder} className="h-full text-slate-600" />
+        </div>
 
         {/* Stop button */}
         <button
@@ -137,10 +136,9 @@ function LiveStreamingRecorderPlayerWithPlay() {
           )}
         </button>
 
-        <LiveStreamingRecorder
-          mediaRecorder={mediaRecorder}
-          className="h-12 w-72 rounded-lg bg-slate-100 text-slate-600 [scrollbar-width:thin]"
-        />
+        <div className="h-12 w-72 overflow-x-auto overflow-y-hidden rounded-lg bg-slate-100 [scrollbar-width:thin]">
+          <LiveStreamingRecorder mediaRecorder={mediaRecorder} className="h-full text-slate-600" />
+        </div>
 
         <button
           type="button"
@@ -227,10 +225,9 @@ function LiveStreamingRecorderPlayerWithDownload() {
           )}
         </button>
 
-        <LiveStreamingRecorder
-          mediaRecorder={mediaRecorder}
-          className="h-12 w-72 rounded-lg bg-slate-100 text-slate-600 [scrollbar-width:thin]"
-        />
+        <div className="h-12 w-72 overflow-x-auto overflow-y-hidden rounded-lg bg-slate-100 [scrollbar-width:thin]">
+          <LiveStreamingRecorder mediaRecorder={mediaRecorder} className="h-full text-slate-600" />
+        </div>
 
         <button
           type="button"
