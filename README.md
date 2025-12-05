@@ -118,14 +118,8 @@ Components accept `className` and `style` props. They render canvas elements tha
 />
 ```
 
-For Tailwind CSS users, colors can be passed via `currentColor`:
-
-```tsx
-<LiveStreamingStackRecorder.Canvas className="text-blue-500" />
-```
-
 ---
 
 ## License
 
-Public Domain - Free for any use.
+[CC0 1.0](./LICENSE) - Public Domain
