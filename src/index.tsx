@@ -1,17 +1,4 @@
 // ============================================================================
-// Compound Components (New Headless API)
-// ============================================================================
-
-export type {
-  AudioWaveformCanvasProps,
-  AudioWaveformContainerProps,
-  AudioWaveformRootProps,
-} from "./waveform/audio-waveform-compound.js";
-// AudioWaveform - Static waveform visualization
-export { AudioWaveform } from "./waveform/audio-waveform-compound.js";
-export type { BarConfig, BarStyle } from "./waveform/util-canvas.js";
-
-// ============================================================================
 // Headless Hooks
 // ============================================================================
 
@@ -38,15 +25,10 @@ export type { UseAudioWaveformOptions, UseAudioWaveformReturn } from "./waveform
 export { useAudioWaveform } from "./waveform/use-audio-waveform.js";
 
 // ============================================================================
-// Legacy Components (Deprecated - use Compound Components instead)
+// Components
 // ============================================================================
 
 export type { LiveRecorderProps, LiveRecorderRef } from "./recorder/live-recorder/index.js";
-// @deprecated Use LiveRecorder compound components instead
-export { LiveRecorder as LiveAudioVisualizer } from "./recorder/live-recorder/index.js";
+export { LiveRecorder } from "./recorder/live-recorder/index.js";
 export type { LiveStreamingRecorderProps, LiveStreamingRecorderRef } from "./recorder/live-streaming-recorder/index.js";
-// @deprecated Use LiveStreamingRecorder compound components instead
-export { LiveStreamingRecorder as RecordingWaveformLegacy } from "./recorder/live-streaming-recorder/index.js";
-export type { AudioWaveformProps, AudioWaveformRef } from "./waveform/index.js";
-// @deprecated Use AudioWaveform compound components instead
-export { AudioVisualizer, AudioWaveform as AudioWaveformLegacy } from "./waveform/index.js";
+export { LiveStreamingRecorder } from "./recorder/live-streaming-recorder/index.js";

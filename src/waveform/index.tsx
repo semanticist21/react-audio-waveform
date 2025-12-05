@@ -93,6 +93,4 @@ export const AudioWaveform = forwardRef<AudioWaveformRef, AudioWaveformProps>(fu
   return <WaveformRenderer ref={rendererRef} peaks={finalPeaks} className={className} style={style} />;
 });
 
-export const AudioVisualizer = AudioWaveform;
-
 export default AudioWaveform;
