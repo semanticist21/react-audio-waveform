@@ -29,11 +29,11 @@ Visualize existing audio files (mp3, wav, etc.) with playhead and seek support.
 
 ### AudioWaveform
 
-![AudioWaveform](https://react-audio-waveform.netlify.app/audio-wave-form.png)
+![AudioWaveform](https://react-audio-wavekit.netlify.app/audio-wave-form.png)
 
 Static waveform visualization with playhead and click-to-seek.
 
-[▶ Demo](https://react-audio-waveform.netlify.app/?path=/story/waveform-audiowaveform--default)
+[▶ Demo](https://react-audio-wavekit.netlify.app/?path=/story/waveform-audiowaveform--default)
 
 ```tsx
 <AudioWaveform
@@ -89,11 +89,11 @@ Headless hook to manage recording state. Use with recorder components below.
 
 ### LiveStreamingRecorder
 
-![LiveStreamingRecorder](https://react-audio-waveform.netlify.app/live-stream.png)
+![LiveStreamingRecorder](https://react-audio-wavekit.netlify.app/live-stream.png)
 
 Scrolling timeline waveform (Voice Memos style). Canvas grows horizontally as recording continues.
 
-[▶ Demo](https://react-audio-waveform.netlify.app/?path=/story/recorder-livestreamingrecorder--default)
+[▶ Demo](https://react-audio-wavekit.netlify.app/?path=/story/recorder-livestreamingrecorder--default)
 
 ```tsx
 <LiveStreamingRecorder.Root
@@ -127,11 +127,11 @@ Scrolling timeline waveform (Voice Memos style). Canvas grows horizontally as re
 
 ### LiveStreamingStackRecorder
 
-![LiveStreamingStackRecorder](https://react-audio-waveform.netlify.app/live-stream-stack.png)
+![LiveStreamingStackRecorder](https://react-audio-wavekit.netlify.app/live-stream-stack.png)
 
 Fixed-width waveform where bars compress as recording grows.
 
-[▶ Demo](https://react-audio-waveform.netlify.app/?path=/story/recorder-livestreamingstackrecorder--default)
+[▶ Demo](https://react-audio-wavekit.netlify.app/?path=/story/recorder-livestreamingstackrecorder--default)
 
 ```tsx
 <LiveStreamingStackRecorder
@@ -151,11 +151,11 @@ Fixed-width waveform where bars compress as recording grows.
 
 ### LiveRecorder
 
-![LiveRecorder](https://react-audio-waveform.netlify.app/live-recorder.png)
+![LiveRecorder](https://react-audio-wavekit.netlify.app/live-recorder.png)
 
 Real-time frequency bars visualization.
 
-[▶ Demo](https://react-audio-waveform.netlify.app/?path=/story/recorder-liverecorder--default)
+[▶ Demo](https://react-audio-wavekit.netlify.app/?path=/story/recorder-liverecorder--default)
 
 ```tsx
 <LiveRecorder mediaRecorder={mediaRecorder} />
