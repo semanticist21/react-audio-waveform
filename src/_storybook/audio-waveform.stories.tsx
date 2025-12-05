@@ -221,7 +221,7 @@ export default meta;
 
 type Story = StoryObj<typeof AudioWaveformPlayer>;
 
-// Playground 스토리용 확장 타입
+// Extended type for Playground story
 interface PlaygroundArgs {
   barColor: string;
   barWidth: number;
@@ -233,7 +233,7 @@ interface PlaygroundArgs {
   playheadWidth: number;
 }
 
-// Playground 스토리: Controls 패널에서 appearance 속성 조정 가능
+// Playground story: Adjust appearance properties in Controls panel
 export const Playground: StoryObj<PlaygroundArgs> = {
   render: (args) => {
     const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
@@ -297,7 +297,7 @@ export const Playground: StoryObj<PlaygroundArgs> = {
             barColor: args.barColor,
             barWidth: args.barWidth,
             barGap: args.barGap,
-            // barRadiusFull이 true면 barWidth의 절반으로 설정 (완전 원형)
+            // If barRadiusFull is true, set to half of barWidth (fully rounded)
             barRadius: args.barRadiusFull ? args.barWidth / 2 : args.barRadius,
             barHeightScale: args.barHeightScale,
             playheadColor: args.playheadColor,
@@ -340,6 +340,28 @@ export const Playground: StoryObj<PlaygroundArgs> = {
   },
   parameters: {
     layout: "fullscreen",
+    docs: {
+      source: {
+        code: `import { AudioWaveform } from "react-audio-wavekit";
+
+<AudioWaveform
+  blob={audioBlob}
+  className="h-32 w-full rounded-xl bg-slate-900 p-4"
+  currentTime={currentTime}
+  duration={duration}
+  onSeek={(time) => { audioRef.current.currentTime = time; }}
+  appearance={{
+    barColor: "#3b82f6",
+    barWidth: 1,
+    barGap: 1.5,
+    barRadius: 2,
+    barHeightScale: 0.95,
+    playheadColor: "#ef4444",
+    playheadWidth: 3,
+  }}
+/>`,
+      },
+    },
   },
 };
 

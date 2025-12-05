@@ -77,7 +77,7 @@ export default meta;
 
 type Story = StoryObj<typeof LiveStreamingStackRecorderPlayer>;
 
-// Playground 스토리용 확장 타입 (waveform + analyser 옵션)
+// Extended type for Playground story (waveform + analyser options)
 interface PlaygroundArgs {
   // Waveform appearance
   barColor: string;
@@ -92,7 +92,7 @@ interface PlaygroundArgs {
   sampleInterval: number;
 }
 
-// Playground 스토리: Controls 패널에서 appearance 속성 조정 가능
+// Playground story: Adjust appearance properties in Controls panel
 export const Playground: StoryObj<PlaygroundArgs> = {
   render: (args) => {
     const { startRecording, stopRecording, pauseRecording, resumeRecording, mediaRecorder, isRecording, isPaused } =
@@ -200,6 +200,28 @@ export const Playground: StoryObj<PlaygroundArgs> = {
   },
   parameters: {
     layout: "fullscreen",
+    docs: {
+      source: {
+        code: `import { LiveStreamingStackRecorder, useAudioRecorder } from "react-audio-wavekit";
+
+const { mediaRecorder } = useAudioRecorder();
+
+<LiveStreamingStackRecorder
+  mediaRecorder={mediaRecorder}
+  className="h-12 w-72 rounded-sm bg-slate-100"
+  fftSize={2048}
+  smoothingTimeConstant={0.8}
+  sampleInterval={50}
+  appearance={{
+    barColor: "#3b82f6",
+    barWidth: 3,
+    barGap: 2,
+    barRadius: 1.5,
+    barHeightScale: 0.95,
+  }}
+/>`,
+      },
+    },
   },
 };
 

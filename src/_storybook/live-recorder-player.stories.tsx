@@ -213,7 +213,7 @@ export default meta;
 
 type Story = StoryObj<typeof LiveRecorderPlayer>;
 
-// Playground 스토리용 확장 타입
+// Extended type for Playground story
 interface PlaygroundArgs {
   barColor: string;
   barWidth: number;
@@ -223,7 +223,7 @@ interface PlaygroundArgs {
   barHeightScale: number;
 }
 
-// Playground 스토리: Controls 패널에서 appearance 속성 조정 가능
+// Playground story: Adjust appearance properties in Controls panel
 export const Playground: StoryObj<PlaygroundArgs> = {
   render: (args) => {
     const { startRecording, stopRecording, pauseRecording, resumeRecording, mediaRecorder, isRecording, isPaused } =
@@ -308,6 +308,25 @@ export const Playground: StoryObj<PlaygroundArgs> = {
   },
   parameters: {
     layout: "fullscreen",
+    docs: {
+      source: {
+        code: `import { LiveRecorder, useAudioRecorder } from "react-audio-wavekit";
+
+const { mediaRecorder } = useAudioRecorder();
+
+<LiveRecorder
+  mediaRecorder={mediaRecorder}
+  className="h-12 w-72 rounded-sm bg-slate-100"
+  appearance={{
+    barColor: "#3b82f6",
+    barWidth: 3,
+    barGap: 2,
+    barRadius: 1.5,
+    barHeightScale: 0.95,
+  }}
+/>`,
+      },
+    },
   },
 };
 
