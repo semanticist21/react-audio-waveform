@@ -1,31 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useAudioAnalyser } from "../use-audio-analyser";
+import type { UseRecordingAmplitudesOptions, UseRecordingAmplitudesReturn } from "./types";
 
-export interface UseRecordingAmplitudesOptions {
-  /** MediaRecorder instance to sample from */
-  mediaRecorder: MediaRecorder | null;
-  /** FFT size for frequency analysis (must be power of 2) */
-  fftSize?: number;
-  /** Smoothing time constant for analyser (0-1) */
-  smoothingTimeConstant?: number;
-  /** Interval in ms for sampling amplitude data */
-  sampleInterval?: number;
-}
-
-export interface UseRecordingAmplitudesReturn {
-  /** Array of amplitude values (0-1 range) sampled over time */
-  amplitudes: number[];
-  /** Audio context instance */
-  audioContext: AudioContext | null;
-  /** Analyser node instance */
-  analyser: AnalyserNode | null;
-  /** Whether recording is active */
-  isRecording: boolean;
-  /** Whether recording is paused */
-  isPaused: boolean;
-  /** Clear all amplitude data */
-  clearAmplitudes: () => void;
-}
+export type { UseRecordingAmplitudesOptions, UseRecordingAmplitudesReturn };
 
 /**
  * Headless hook for collecting amplitude timeline data from MediaRecorder

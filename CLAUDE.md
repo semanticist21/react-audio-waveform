@@ -26,9 +26,7 @@ src/
 ├── index.tsx              # Library entry point (exports all public APIs)
 ├── index.css              # Tailwind import (Storybook only)
 ├── waveform/              # Static waveform visualization
-│   ├── index.tsx                  # Legacy component (deprecated)
-│   ├── audio-waveform-compound.tsx # Compound component API
-│   ├── audio-waveform-context.tsx  # Context provider
+│   ├── index.tsx                  # Main AudioWaveform component
 │   ├── use-audio-waveform.ts       # Headless hook
 │   ├── waveform-renderer.tsx       # Canvas rendering logic
 │   ├── util-audio-decoder.ts       # Web Audio API decoding
@@ -38,20 +36,31 @@ src/
 │   ├── live-recorder/         # Real-time frequency bars
 │   │   ├── index.tsx             # Legacy component (deprecated)
 │   │   └── use-live-audio-data.ts # Headless hook
-│   ├── live-streaming-recorder/ # Timeline waveform (Voice Memos style)
+│   ├── live-streaming-recorder/ # Timeline waveform (scrolling, Voice Memos style)
 │   │   ├── index.tsx                  # Legacy component (deprecated)
+│   │   ├── live-streaming-recorder-compound.tsx # Compound component API
+│   │   ├── live-streaming-recorder-context.tsx  # Context provider
 │   │   └── use-recording-amplitudes.ts # Headless hook
+│   ├── live-streaming-stack-recorder/ # Fixed width waveform (bars compress)
+│   │   ├── index.tsx                  # Legacy component (deprecated)
+│   │   ├── live-streaming-stack-recorder-compound.tsx # Compound component API
+│   │   └── live-streaming-stack-recorder-context.tsx  # Context provider
 │   ├── use-audio-analyser.ts # Shared Web Audio setup hook
 │   └── use-audio-recorder.ts # MediaRecorder hook with pause/resume
-└── player/                # Storybook demo stories
-    └── audio-player.stories.tsx
+└── _storybook/            # Storybook demo stories
+    ├── audio-waveform.stories.tsx
+    ├── live-recorder-player.stories.tsx
+    ├── live-streaming-recorder-player.stories.tsx
+    └── live-streaming-stack-recorder-player.stories.tsx
 ```
 
 **Component Architecture Pattern:**
-- **Compound Components (waveform only):** Flexible composition API with `AudioWaveform.Root`, `AudioWaveform.Canvas`, etc.
+- **Simple Components:** Direct prop-based API for easy usage (AudioWaveform)
+- **Compound Components:** Flexible composition API for complex use cases (LiveStreamingRecorder, LiveStreamingStackRecorder)
 - **Headless Hooks (Recommended):** Extract raw data for custom UI implementations
 - **Legacy Components (Deprecated):** All-in-one components for backwards compatibility
 
+**Build System:**
 - **Build:** Vite 7 library mode with `vite-plugin-dts` for type generation
 - **Styling:** Tailwind CSS v4 - classes only, no CSS bundled
 - **Output:** `dist/index.js` (ESM), `dist/index.cjs` (CJS), `dist/index.d.ts` (types)
@@ -62,27 +71,77 @@ src/
 ## Code Conventions
 
 - **File naming:** kebab-case (e.g., `audio-waveform.tsx`, `use-audio-recorder.ts`)
-- **Component organization:** Feature folders contain `index.tsx` (legacy) and `use-*.ts` (headless hook). Waveform has additional compound component files.
+- **Component organization:** Feature folders contain `index.tsx` (legacy), `use-*.ts` (headless hook), and optional compound component files
 - **Exports:** All public APIs exported from `src/index.tsx` (auto-sorted by Biome)
 - **Imports:** Use relative paths; Biome auto-organizes import order
 - **Commit messages:** Conventional commit format, title only (no co-authored-by, no emoji)
 - **Code quality:** Always run `bun run fix` after code changes, then `bun run check` to verify
 - **Comments:** Add Korean comments for important code sections explaining key logic
 
-## Component API
+## Component API Patterns
 
-### Compound Components (waveform only)
+### Simple Components
 
-**AudioWaveform** - Static waveform visualization:
+**AudioWaveform** - Static waveform visualization with playhead support:
 ```tsx
-<AudioWaveform.Root blob={audioBlob}>
-  <AudioWaveform.Container className="h-32 bg-gray-100">
-    <AudioWaveform.Canvas className="text-blue-500" />
-  </AudioWaveform.Container>
-</AudioWaveform.Root>
+// Basic usage
+<div className="h-32 bg-gray-100">
+  <AudioWaveform blob={audioBlob} className="h-full text-blue-500" />
+</div>
+
+// With playhead and seek
+<div className="h-32 bg-gray-100">
+  <AudioWaveform
+    blob={audioBlob}
+    className="h-full text-blue-500"
+    currentTime={audioElement.currentTime}
+    duration={audioElement.duration}
+    onSeek={(time) => audioElement.currentTime = time}
+    playheadColor="#ef4444"
+    playheadWidth={2}
+  />
+</div>
+
+// Custom bar styling
+<div className="h-32 bg-gray-100">
+  <AudioWaveform
+    blob={audioBlob}
+    className="h-full text-green-500"
+    barConfig={{ width: 5, gap: 2, radius: 2 }}
+  />
+</div>
 ```
 
-### Headless Hooks (Recommended for recorder components)
+### Compound Components
+
+**LiveStreamingRecorder** - Timeline waveform recording (scrolling):
+```tsx
+<LiveStreamingRecorder.Root
+  mediaRecorder={mediaRecorder}
+  className="w-72 overflow-x-auto"
+>
+  <LiveStreamingRecorder.Canvas
+    className="text-blue-500"
+    barConfig={{ width: 3, gap: 1, radius: 1.5 }}
+    growWidth={true}
+  />
+</LiveStreamingRecorder.Root>
+```
+
+**LiveStreamingStackRecorder** - Fixed width waveform (bars compress):
+```tsx
+<LiveStreamingStackRecorder.Root
+  mediaRecorder={mediaRecorder}
+  className="w-72"
+>
+  <LiveStreamingStackRecorder.Canvas
+    className="text-blue-500"
+    barConfig={{ width: 3, gap: 1, radius: 1.5 }}
+  />
+</LiveStreamingStackRecorder.Root>
+```
+
+### Headless Hooks
 
 **useAudioRecorder** - Recording state management:
 - Returns: `{ startRecording, stopRecording, pauseRecording, resumeRecording, mediaRecorder, recordingBlob, isRecording, isPaused, recordingTime, error }`
@@ -103,11 +162,13 @@ src/
 ## Key Implementation Details
 
 - **Canvas Color Inheritance:** Canvas uses `text-inherit` class to enable Tailwind color inheritance via `getComputedStyle(canvas).color`
-- **Bar Styling:** CSS custom properties via className `[--bar-width:3]`, `[--bar-gap:1]`, `[--bar-radius:1.5]` or `style` prop
+- **Bar Styling:** CSS custom properties via className `[--bar-width:3]`, `[--bar-gap:1]`, `[--bar-radius:1.5]` or `style` prop, or direct `barConfig`/`barStyle` props
 - **Audio Decoding:** Web Audio API (`AudioContext.decodeAudioData`) for blob processing
 - **Device Pixel Ratio:** Automatic DPR support for sharp canvas rendering on retina displays
 - **Tailwind Integration:** Library consumers must include this package in their Tailwind `content` config
 - **Shared Utilities:** `getCanvasBarStyles()` in `util-canvas.ts` extracts bar styling from CSS variables for all visualizers
+- **Growing Canvas Width:** `LiveStreamingRecorder.Canvas` supports `growWidth` prop - when true, canvas grows horizontally as recording continues (Voice Memos style with scrolling)
+- **Playhead & Seek:** `AudioWaveform` supports playhead visualization and click-to-seek - pass `currentTime`, `duration`, and `onSeek` props. Playhead automatically calculates position and renders as a vertical line. Canvas becomes clickable when `onSeek` is provided.
 
 ## Development Workflow
 
@@ -123,9 +184,9 @@ src/
 2. **Adding New Components:**
    - Create feature folder under `recorder/` or `waveform/`
    - Include: `index.tsx` (legacy) and `use-*.ts` (headless hook)
-   - For waveform components, optionally add compound component files
+   - For compound components, add `*-compound.tsx` and `*-context.tsx`
    - Export all public APIs from `src/index.tsx`
-   - Add Storybook story in `src/player/`
+   - Add Storybook story in `src/_storybook/`
 
 3. **Git Workflow:**
    - Commit message format: `type: description` (e.g., `feat: add pitch detection`, `fix: canvas memory leak`)

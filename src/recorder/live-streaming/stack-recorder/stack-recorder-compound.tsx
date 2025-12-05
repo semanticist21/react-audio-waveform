@@ -1,49 +1,43 @@
 import { forwardRef, type HTMLAttributes, type ReactNode, useCallback, useEffect, useRef } from "react";
-import type { BarConfig } from "../../waveform/util-canvas";
-import { LiveStreamingRecorderProvider, useLiveStreamingRecorderContext } from "./live-streaming-recorder-context";
-import type { UseRecordingAmplitudesOptions } from "./use-recording-amplitudes";
+import type { BarConfig } from "../../../waveform/util-canvas";
+import type { UseRecordingAmplitudesOptions } from "../use-recording-amplitudes";
+import { LiveStreamingStackRecorderProvider, useLiveStreamingStackRecorderContext } from "./stack-recorder-context";
 
 // ============================================================================
-// LiveStreamingRecorder.Root
+// LiveStreamingStackRecorder.Root
 // ============================================================================
 
-export interface LiveStreamingRecorderRootProps extends UseRecordingAmplitudesOptions {
-  children: ReactNode | ((value: ReturnType<typeof useLiveStreamingRecorderContext>) => ReactNode);
+export interface LiveStreamingStackRecorderRootProps
+  extends UseRecordingAmplitudesOptions,
+    Omit<HTMLAttributes<HTMLDivElement>, "children"> {
+  children: ReactNode | ((value: ReturnType<typeof useLiveStreamingStackRecorderContext>) => ReactNode);
 }
 
-const LiveStreamingRecorderRoot = forwardRef<HTMLDivElement, LiveStreamingRecorderRootProps>(
-  function LiveStreamingRecorderRoot({ children, ...options }, ref) {
+const LiveStreamingStackRecorderRoot = forwardRef<HTMLDivElement, LiveStreamingStackRecorderRootProps>(
+  function LiveStreamingStackRecorderRoot(
+    { children, className = "", style, mediaRecorder, fftSize, smoothingTimeConstant, sampleInterval, ...props },
+    ref
+  ) {
     return (
-      <div ref={ref}>
-        <LiveStreamingRecorderProvider {...options}>{children}</LiveStreamingRecorderProvider>
+      <div ref={ref} className={className} style={style} {...props}>
+        <LiveStreamingStackRecorderProvider
+          mediaRecorder={mediaRecorder}
+          fftSize={fftSize}
+          smoothingTimeConstant={smoothingTimeConstant}
+          sampleInterval={sampleInterval}
+        >
+          {children}
+        </LiveStreamingStackRecorderProvider>
       </div>
     );
   }
 );
 
 // ============================================================================
-// LiveStreamingRecorder.Container
+// LiveStreamingStackRecorder.Canvas
 // ============================================================================
 
-export interface LiveStreamingRecorderContainerProps extends HTMLAttributes<HTMLDivElement> {
-  children: ReactNode;
-}
-
-const LiveStreamingRecorderContainer = forwardRef<HTMLDivElement, LiveStreamingRecorderContainerProps>(
-  function LiveStreamingRecorderContainer({ children, className = "", ...props }, ref) {
-    return (
-      <div ref={ref} className={className} {...props}>
-        {children}
-      </div>
-    );
-  }
-);
-
-// ============================================================================
-// LiveStreamingRecorder.Canvas
-// ============================================================================
-
-export interface LiveStreamingRecorderCanvasProps extends HTMLAttributes<HTMLCanvasElement> {
+export interface LiveStreamingStackRecorderCanvasProps extends HTMLAttributes<HTMLCanvasElement> {
   /** Additional className for canvas element */
   className?: string;
   /** Inline styles for canvas element */
@@ -57,9 +51,9 @@ export interface LiveStreamingRecorderCanvasProps extends HTMLAttributes<HTMLCan
   showIdleState?: boolean;
 }
 
-const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingRecorderCanvasProps>(
-  function LiveStreamingRecorderCanvas({ className = "", style, barConfig, showIdleState = true, ...props }, ref) {
-    const { amplitudes, isRecording, isPaused } = useLiveStreamingRecorderContext();
+const LiveStreamingStackRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingStackRecorderCanvasProps>(
+  function LiveStreamingStackRecorderCanvas({ className = "", style, barConfig, showIdleState = true, ...props }, ref) {
+    const { amplitudes, isRecording, isPaused } = useLiveStreamingStackRecorderContext();
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const animationRef = useRef<number | null>(null);
 
@@ -74,7 +68,7 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
       }
     }, [ref]);
 
-    // Canvas rendering function
+    // Canvas rendering function (녹음 중 실시간으로 호출됨)
     const drawWaveform = useCallback(() => {
       const canvas = canvasRef.current;
       if (!canvas) return;
@@ -83,7 +77,10 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
       if (!ctx) return;
 
       const dpr = window.devicePixelRatio || 1;
-      const { width, height } = canvas.getBoundingClientRect();
+      // Container 크기를 가져옴 (고정 너비 유지)
+      const rect = canvas.getBoundingClientRect();
+      const containerWidth = rect.width;
+      const containerHeight = rect.height;
 
       // barConfig에서 bar 스타일 값 추출
       const barWidth = barConfig?.width
@@ -109,29 +106,31 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
 
       // 녹음 중이거나 데이터가 있을 때
       if (isRecording || amplitudes.length > 0) {
-        // Calculate required canvas width based on data
-        const requiredWidth = amplitudes.length * totalBarWidth;
-        const canvasWidth = Math.max(requiredWidth, width);
+        // 고정 width 유지 (container 너비에 맞춤)
+        const canvasWidth = containerWidth;
 
         canvas.width = canvasWidth * dpr;
-        canvas.height = height * dpr;
+        canvas.height = containerHeight * dpr;
         ctx.scale(dpr, dpr);
 
         // Clear canvas
-        ctx.clearRect(0, 0, canvasWidth, height);
+        ctx.clearRect(0, 0, canvasWidth, containerHeight);
 
         // Set bar color
         ctx.fillStyle = barColor;
 
-        // Draw bars from amplitude data
+        // Draw bars - amplitudes를 canvas width에 맞춰 압축
         const minBarHeight = 2;
+        const barsCount = Math.floor(canvasWidth / totalBarWidth);
+        const step = amplitudes.length / barsCount;
 
-        for (let i = 0; i < amplitudes.length; i++) {
-          const amplitude = amplitudes[i];
-          const barHeight = Math.max(minBarHeight, amplitude * height * 0.9);
+        for (let i = 0; i < barsCount; i++) {
+          const amplitudeIndex = Math.min(Math.floor(i * step), amplitudes.length - 1);
+          const amplitude = amplitudes[amplitudeIndex] || 0;
+          const barHeight = Math.max(minBarHeight, amplitude * containerHeight * 0.9);
 
           const x = i * totalBarWidth;
-          const y = (height - barHeight) / 2;
+          const y = (containerHeight - barHeight) / 2;
 
           ctx.beginPath();
           ctx.roundRect(x, y, barWidth, barHeight, barRadius);
@@ -139,19 +138,19 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
         }
       } else if (showIdleState) {
         // No data - draw idle state (minimal bars)
-        canvas.width = width * dpr;
-        canvas.height = height * dpr;
+        canvas.width = containerWidth * dpr;
+        canvas.height = containerHeight * dpr;
         ctx.scale(dpr, dpr);
 
-        ctx.clearRect(0, 0, width, height);
+        ctx.clearRect(0, 0, containerWidth, containerHeight);
 
         ctx.fillStyle = barColor;
         const minBarHeight = 2;
-        const barCount = Math.floor((width + gap) / totalBarWidth);
+        const barCount = Math.floor((containerWidth + gap) / totalBarWidth);
 
         for (let i = 0; i < barCount; i++) {
           const x = i * totalBarWidth;
-          const y = (height - minBarHeight) / 2;
+          const y = (containerHeight - minBarHeight) / 2;
           ctx.beginPath();
           ctx.roundRect(x, y, barWidth, minBarHeight, barRadius);
           ctx.fill();
@@ -159,7 +158,23 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
       }
     }, [amplitudes, isRecording, barConfig, showIdleState]);
 
-    // Animation loop when recording
+    // Track container size with ResizeObserver
+    useEffect(() => {
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      const resizeObserver = new ResizeObserver(() => {
+        // Container 크기 변경시 다시 그리기
+        if (!isRecording) {
+          drawWaveform();
+        }
+      });
+
+      resizeObserver.observe(canvas);
+      return () => resizeObserver.disconnect();
+    }, [isRecording, drawWaveform]);
+
+    // Animation loop when recording (매 프레임마다 실행되어 실시간 업데이트)
     useEffect(() => {
       if (isRecording && !isPaused) {
         const draw = () => {
@@ -179,18 +194,15 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
       drawWaveform();
     }, [isRecording, isPaused, drawWaveform]);
 
-    // Re-render when amplitudes change (for non-recording updates)
-    useEffect(() => {
-      if (!isRecording) {
-        drawWaveform();
-      }
-    }, [isRecording, drawWaveform]);
-
     return (
       <canvas
         ref={canvasRef}
         className={`text-inherit ${className}`}
-        style={style}
+        style={{
+          width: "100%",
+          height: "100%",
+          ...style,
+        }}
         aria-hidden="true"
         tabIndex={-1}
         {...props}
@@ -203,8 +215,7 @@ const LiveStreamingRecorderCanvas = forwardRef<HTMLCanvasElement, LiveStreamingR
 // Compound Component Composition
 // ============================================================================
 
-export const LiveStreamingRecorder = Object.assign(LiveStreamingRecorderRoot, {
-  Root: LiveStreamingRecorderRoot,
-  Container: LiveStreamingRecorderContainer,
-  Canvas: LiveStreamingRecorderCanvas,
+export const LiveStreamingStackRecorder = Object.assign(LiveStreamingStackRecorderRoot, {
+  Root: LiveStreamingStackRecorderRoot,
+  Canvas: LiveStreamingStackRecorderCanvas,
 });

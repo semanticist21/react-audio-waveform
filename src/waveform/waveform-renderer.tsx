@@ -12,6 +12,16 @@ export interface WaveformRendererProps {
   className?: string;
   /** Bar styling configuration */
   barConfig?: BarConfig;
+  /** Current playback time in seconds */
+  currentTime?: number;
+  /** Total audio duration in seconds */
+  duration?: number;
+  /** Callback when user clicks on waveform */
+  onSeek?: (time: number) => void;
+  /** Playhead color */
+  playheadColor?: string;
+  /** Playhead width in pixels */
+  playheadWidth?: number;
 }
 
 export interface WaveformRendererRef {
@@ -19,7 +29,7 @@ export interface WaveformRendererRef {
 }
 
 export const WaveformRenderer = forwardRef<WaveformRendererRef, WaveformRendererProps>(function WaveformRenderer(
-  { peaks, className = "", barConfig },
+  { peaks, className = "", barConfig, currentTime, duration, onSeek, playheadColor = "#ef4444", playheadWidth = 2 },
   ref
 ) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -91,7 +101,14 @@ export const WaveformRenderer = forwardRef<WaveformRendererRef, WaveformRenderer
         ctx.fillRect(x, y, barWidth, barHeight);
       }
     }
-  }, [peaks, barConfig]);
+
+    // Playhead 렌더링 (currentTime과 duration이 있을 때만)
+    if (currentTime !== undefined && duration !== undefined && duration > 0) {
+      const playheadX = (currentTime / duration) * width;
+      ctx.fillStyle = playheadColor;
+      ctx.fillRect(playheadX - playheadWidth / 2, 0, playheadWidth, height);
+    }
+  }, [peaks, barConfig, currentTime, duration, playheadColor, playheadWidth]);
 
   // ResizeObserver with RAF throttling
   useEffect(() => {
@@ -123,5 +140,32 @@ export const WaveformRenderer = forwardRef<WaveformRendererRef, WaveformRenderer
     drawWaveform();
   }, [drawWaveform]);
 
-  return <canvas ref={canvasRef} className={className} role="img" aria-label="Audio waveform" />;
+  // Click handler for seeking
+  const handleClick = useCallback(
+    (e: React.MouseEvent<HTMLCanvasElement>) => {
+      if (!onSeek || !duration || duration <= 0) return;
+
+      const canvas = canvasRef.current;
+      if (!canvas) return;
+
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const clickRatio = x / rect.width;
+      const newTime = Math.max(0, Math.min(clickRatio * duration, duration));
+
+      onSeek(newTime);
+    },
+    [onSeek, duration]
+  );
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className={className}
+      role="img"
+      aria-label="Audio waveform"
+      onClick={handleClick}
+      style={{ cursor: onSeek ? "pointer" : undefined }}
+    />
+  );
 });

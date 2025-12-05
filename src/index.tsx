@@ -11,9 +11,9 @@ export { useLiveAudioData } from "./recorder/live-recorder/use-live-audio-data.j
 export type {
   UseRecordingAmplitudesOptions,
   UseRecordingAmplitudesReturn,
-} from "./recorder/live-streaming-recorder/use-recording-amplitudes.js";
+} from "./recorder/live-streaming/use-recording-amplitudes.js";
 // Recording amplitudes extraction
-export { useRecordingAmplitudes } from "./recorder/live-streaming-recorder/use-recording-amplitudes.js";
+export { useRecordingAmplitudes } from "./recorder/live-streaming/use-recording-amplitudes.js";
 export type { UseAudioAnalyserConfig, UseAudioAnalyserReturn } from "./recorder/use-audio-analyser.js";
 // Audio analyser hook (advanced usage)
 export { useAudioAnalyser } from "./recorder/use-audio-analyser.js";
@@ -31,8 +31,6 @@ export type { BarConfig, BarStyle } from "./waveform/util-canvas.js";
 
 export type { LiveRecorderProps, LiveRecorderRef } from "./recorder/live-recorder/index.js";
 export { LiveRecorder } from "./recorder/live-recorder/index.js";
-export type { LiveStreamingRecorderProps, LiveStreamingRecorderRef } from "./recorder/live-streaming-recorder/index.js";
-export { LiveStreamingRecorder as LiveStreamingRecorderLegacy } from "./recorder/live-streaming-recorder/index.js";
 
 // ============================================================================
 // Compound Components
@@ -40,15 +38,21 @@ export { LiveStreamingRecorder as LiveStreamingRecorderLegacy } from "./recorder
 
 export type {
   LiveStreamingRecorderCanvasProps,
-  LiveStreamingRecorderContainerProps,
   LiveStreamingRecorderRootProps,
-} from "./recorder/live-streaming-recorder/live-streaming-recorder-compound.js";
-// LiveStreamingRecorder compound component
-export { LiveStreamingRecorder } from "./recorder/live-streaming-recorder/live-streaming-recorder-compound.js";
+} from "./recorder/live-streaming/recorder/recorder-compound.js";
+// LiveStreamingRecorder compound component (scrolling timeline)
+export { LiveStreamingRecorder } from "./recorder/live-streaming/recorder/recorder-compound.js";
 export type {
-  AudioWaveformCanvasProps,
-  AudioWaveformContainerProps,
-  AudioWaveformRootProps,
-} from "./waveform/audio-waveform-compound.js";
-// AudioWaveform compound component
-export { AudioWaveform } from "./waveform/audio-waveform-compound.js";
+  LiveStreamingStackRecorderCanvasProps,
+  LiveStreamingStackRecorderRootProps,
+} from "./recorder/live-streaming/stack-recorder/stack-recorder-compound.js";
+// LiveStreamingStackRecorder compound component (fixed width, bars compress)
+export { LiveStreamingStackRecorder } from "./recorder/live-streaming/stack-recorder/stack-recorder-compound.js";
+
+// ============================================================================
+// Static Waveform
+// ============================================================================
+
+export type { AudioWaveformProps, AudioWaveformRef } from "./waveform/index.js";
+// AudioWaveform component
+export { AudioWaveform } from "./waveform/index.js";

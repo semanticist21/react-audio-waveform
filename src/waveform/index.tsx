@@ -17,6 +17,16 @@ export interface AudioWaveformProps {
   barConfig?: BarConfig;
   /** Enable Suspense mode (requires Suspense boundary in parent) */
   suspense?: boolean;
+  /** Current playback time in seconds (shows playhead) */
+  currentTime?: number;
+  /** Total audio duration in seconds (required for playhead positioning) */
+  duration?: number;
+  /** Callback when user clicks/seeks on waveform */
+  onSeek?: (time: number) => void;
+  /** Playhead color (default: #ef4444 / red-500) */
+  playheadColor?: string;
+  /** Playhead width in pixels (default: 2) */
+  playheadWidth?: number;
 }
 
 export interface AudioWaveformRef {
@@ -24,7 +34,7 @@ export interface AudioWaveformRef {
 }
 
 export const AudioWaveform = forwardRef<AudioWaveformRef, AudioWaveformProps>(function AudioWaveform(
-  { blob, className, barConfig, suspense = false },
+  { blob, className, barConfig, suspense = false, currentTime, duration, onSeek, playheadColor, playheadWidth },
   ref
 ) {
   const [peaks, setPeaks] = useState<number[] | null>(null);
@@ -87,7 +97,19 @@ export const AudioWaveform = forwardRef<AudioWaveformRef, AudioWaveformProps>(fu
 
   const finalPeaks = suspense ? suspensePeaks : peaks;
 
-  return <WaveformRenderer ref={rendererRef} peaks={finalPeaks} className={className} barConfig={barConfig} />;
+  return (
+    <WaveformRenderer
+      ref={rendererRef}
+      peaks={finalPeaks}
+      className={className}
+      barConfig={barConfig}
+      currentTime={currentTime}
+      duration={duration}
+      onSeek={onSeek}
+      playheadColor={playheadColor}
+      playheadWidth={playheadWidth}
+    />
+  );
 });
 
 export default AudioWaveform;

@@ -1,9 +1,9 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { useEffect, useRef } from "react";
-import { LiveStreamingRecorder } from "../recorder/live-streaming/recorder/recorder-compound";
+import { LiveStreamingStackRecorder } from "../recorder/live-streaming/stack-recorder/stack-recorder-compound";
 import { useAudioRecorder } from "../recorder/use-audio-recorder";
 
-function LiveStreamingRecorderPlayer() {
+function LiveStreamingStackRecorderPlayer() {
   const { startRecording, stopRecording, pauseRecording, resumeRecording, mediaRecorder, isRecording, isPaused } =
     useAudioRecorder({
       onRecordingComplete: (_audioBlob) => {
@@ -48,13 +48,10 @@ function LiveStreamingRecorderPlayer() {
           )}
         </button>
 
-        {/* Waveform display area with scrolling container */}
-        <LiveStreamingRecorder.Root
-          mediaRecorder={mediaRecorder}
-          className="h-12 w-72 overflow-x-auto overflow-y-hidden rounded-lg bg-slate-100 [scrollbar-width:thin]"
-        >
-          <LiveStreamingRecorder.Canvas className="text-slate-600" />
-        </LiveStreamingRecorder.Root>
+        {/* Fixed width waveform (bars compress as recording grows) */}
+        <LiveStreamingStackRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 rounded-lg bg-slate-100">
+          <LiveStreamingStackRecorder.Canvas className="text-slate-600" />
+        </LiveStreamingStackRecorder.Root>
 
         {/* Stop button */}
         <button
@@ -70,7 +67,73 @@ function LiveStreamingRecorderPlayer() {
   );
 }
 
-function LiveStreamingRecorderPlayerWithPlay() {
+const meta: Meta<typeof LiveStreamingStackRecorderPlayer> = {
+  title: "Recorder/LiveStreamingStackRecorder",
+  component: LiveStreamingStackRecorderPlayer,
+  parameters: {
+    layout: "fullscreen",
+  },
+};
+
+export default meta;
+
+type Story = StoryObj<typeof LiveStreamingStackRecorderPlayer>;
+
+export const Default: Story = {
+  parameters: {
+    docs: {
+      source: {
+        code: `function LiveStreamingStackRecorderPlayer() {
+  const { startRecording, stopRecording, pauseRecording, resumeRecording, mediaRecorder, isRecording, isPaused } =
+    useAudioRecorder({
+      onRecordingComplete: (audioBlob) => {
+        // Uncomment to play audio in new tab when recording completes
+        // const audioUrl = URL.createObjectURL(audioBlob);
+        // window.open(audioUrl, "_blank");
+      },
+    });
+
+  const handleRecordClick = () => {
+    if (!isRecording) {
+      startRecording();
+    } else if (isPaused) {
+      resumeRecording();
+    } else {
+      pauseRecording();
+    }
+  };
+
+  return (
+    <div className="flex h-screen w-full items-center justify-center bg-slate-100">
+      <div className="flex h-24 w-fit items-center gap-4 rounded-2xl bg-white px-5 shadow-lg">
+        <button type="button" onClick={handleRecordClick}>
+          {/* Record/pause button UI */}
+        </button>
+
+        {/* Fixed width waveform (bars compress as recording grows) */}
+        <LiveStreamingStackRecorder.Root
+          mediaRecorder={mediaRecorder}
+          className="h-12 w-72 rounded-lg bg-slate-100"
+        >
+          <LiveStreamingStackRecorder.Canvas
+            className="text-slate-600"
+            // text-slate-600: bar color (inherited via text-inherit)
+          />
+        </LiveStreamingStackRecorder.Root>
+
+        <button type="button" onClick={stopRecording} disabled={!isRecording}>
+          {/* Stop button UI */}
+        </button>
+      </div>
+    </div>
+  );
+}`,
+      },
+    },
+  },
+};
+
+function LiveStreamingStackRecorderPlayerWithPlay() {
   const {
     startRecording,
     stopRecording,
@@ -123,12 +186,9 @@ function LiveStreamingRecorderPlayerWithPlay() {
           )}
         </button>
 
-        <LiveStreamingRecorder.Root
-          mediaRecorder={mediaRecorder}
-          className="h-12 w-72 overflow-x-auto overflow-y-hidden rounded-lg bg-slate-100 [scrollbar-width:thin]"
-        >
-          <LiveStreamingRecorder.Canvas className="text-slate-600" />
-        </LiveStreamingRecorder.Root>
+        <LiveStreamingStackRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 rounded-lg bg-slate-100">
+          <LiveStreamingStackRecorder.Canvas className="text-slate-600" />
+        </LiveStreamingStackRecorder.Root>
 
         <button
           type="button"
@@ -152,7 +212,11 @@ function LiveStreamingRecorderPlayerWithPlay() {
   );
 }
 
-function LiveStreamingRecorderPlayerWithDownload() {
+export const WithPlay: StoryObj<typeof LiveStreamingStackRecorderPlayerWithPlay> = {
+  render: () => <LiveStreamingStackRecorderPlayerWithPlay />,
+};
+
+function LiveStreamingStackRecorderPlayerWithDownload() {
   const {
     startRecording,
     stopRecording,
@@ -208,12 +272,9 @@ function LiveStreamingRecorderPlayerWithDownload() {
           )}
         </button>
 
-        <LiveStreamingRecorder.Root
-          mediaRecorder={mediaRecorder}
-          className="h-12 w-72 overflow-x-auto overflow-y-hidden rounded-lg bg-slate-100 [scrollbar-width:thin]"
-        >
-          <LiveStreamingRecorder.Canvas className="text-slate-600" />
-        </LiveStreamingRecorder.Root>
+        <LiveStreamingStackRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 rounded-lg bg-slate-100">
+          <LiveStreamingStackRecorder.Canvas className="text-slate-600" />
+        </LiveStreamingStackRecorder.Root>
 
         <button
           type="button"
@@ -242,164 +303,6 @@ function LiveStreamingRecorderPlayerWithDownload() {
   );
 }
 
-const meta: Meta<typeof LiveStreamingRecorderPlayer> = {
-  title: "Recorder/LiveStreamingRecorder",
-  component: LiveStreamingRecorderPlayer,
-  parameters: {
-    layout: "fullscreen",
-  },
-};
-
-export default meta;
-
-type Story = StoryObj<typeof LiveStreamingRecorderPlayer>;
-
-export const Default: Story = {
-  parameters: {
-    docs: {
-      source: {
-        code: `function LiveStreamingRecorderPlayer() {
-  const { startRecording, stopRecording, pauseRecording, resumeRecording, mediaRecorder, isRecording, isPaused } =
-    useAudioRecorder({
-      onRecordingComplete: (audioBlob) => {
-        // Uncomment to play audio in new tab when recording completes
-        // const audioUrl = URL.createObjectURL(audioBlob);
-        // window.open(audioUrl, "_blank");
-      },
-    });
-
-  const handleRecordClick = () => {
-    if (!isRecording) {
-      startRecording();
-    } else if (isPaused) {
-      resumeRecording();
-    } else {
-      pauseRecording();
-    }
-  };
-
-  return (
-    <div className="flex h-screen w-full items-center justify-center bg-slate-100">
-      <div className="flex h-24 w-fit items-center gap-4 rounded-2xl bg-white px-5 shadow-lg">
-        <button type="button" onClick={handleRecordClick}>
-          {/* Record/pause button UI */}
-        </button>
-
-        {/* Timeline waveform visualization with scrolling container */}
-        <LiveStreamingRecorder.Root
-          mediaRecorder={mediaRecorder}
-          className="h-12 w-72 overflow-x-auto overflow-y-hidden rounded-lg bg-slate-100 [scrollbar-width:thin]"
-          // bg-slate-100: scrolling container background
-        >
-          <LiveStreamingRecorder.Canvas
-            className="w-full h-full text-slate-600"
-            // text-slate-600: bar color (inherited via text-inherit)
-          />
-        </LiveStreamingRecorder.Root>
-
-        <button type="button" onClick={stopRecording} disabled={!isRecording}>
-          {/* Stop button UI */}
-        </button>
-      </div>
-    </div>
-  );
-}`,
-      },
-    },
-  },
-};
-
-export const WithPlay: StoryObj<typeof LiveStreamingRecorderPlayerWithPlay> = {
-  render: () => <LiveStreamingRecorderPlayerWithPlay />,
-  parameters: {
-    docs: {
-      source: {
-        code: `function LiveStreamingRecorderPlayerWithPlay() {
-  const {
-    startRecording,
-    stopRecording,
-    pauseRecording,
-    resumeRecording,
-    mediaRecorder,
-    recordingBlob,
-    isRecording,
-    isPaused,
-  } = useAudioRecorder();
-
-  const audioRef = useRef<HTMLAudioElement>(null);
-
-  // Set blob URL to audio element when recording completes
-  useEffect(() => {
-    if (recordingBlob && audioRef.current) {
-      const url = URL.createObjectURL(recordingBlob);
-      audioRef.current.src = url;
-      return () => URL.revokeObjectURL(url);
-    }
-  }, [recordingBlob]);
-
-  return (
-    <div>
-      <div>{/* Recording controls */}</div>
-      {recordingBlob && (
-        <div>
-          <p>Recording Complete</p>
-          <audio ref={audioRef} controls />
-        </div>
-      )}
-    </div>
-  );
-}`,
-      },
-    },
-  },
-};
-
-export const WithDownload: StoryObj<typeof LiveStreamingRecorderPlayerWithDownload> = {
-  render: () => <LiveStreamingRecorderPlayerWithDownload />,
-  parameters: {
-    docs: {
-      source: {
-        code: `function LiveStreamingRecorderPlayerWithDownload() {
-  const {
-    startRecording,
-    stopRecording,
-    pauseRecording,
-    resumeRecording,
-    mediaRecorder,
-    recordingBlob,
-    isRecording,
-    isPaused,
-  } = useAudioRecorder();
-
-  // Download button click handler
-  const handleDownload = () => {
-    if (!recordingBlob) return;
-
-    const url = URL.createObjectURL(recordingBlob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = \`recording-\${Date.now()}.\${recordingBlob.type.includes("mp4") ? "mp4" : "webm"}\`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  return (
-    <div>
-      <div>{/* Recording controls */}</div>
-      {recordingBlob && (
-        <div>
-          <p>Recording Complete</p>
-          <button type="button" onClick={handleDownload}>
-            Download Recording
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}`,
-      },
-    },
-  },
+export const WithDownload: StoryObj<typeof LiveStreamingStackRecorderPlayerWithDownload> = {
+  render: () => <LiveStreamingStackRecorderPlayerWithDownload />,
 };

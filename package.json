@@ -48,6 +48,7 @@
     "@types/react-dom": "19.2.0",
     "@typescript/native-preview": "^7.0.0-dev.20251203.1",
     "@vitejs/plugin-react": "^5.1.1",
+    "lucide-react": "^0.555.0",
     "react": "19.2.0",
     "react-dom": "19.2.0",
     "storybook": "^10.1.4",

@@ -3,7 +3,7 @@ import {
   type UseRecordingAmplitudesOptions,
   type UseRecordingAmplitudesReturn,
   useRecordingAmplitudes,
-} from "./use-recording-amplitudes";
+} from "../use-recording-amplitudes";
 
 // Context type definition
 type LiveStreamingRecorderContextValue = UseRecordingAmplitudesReturn;
