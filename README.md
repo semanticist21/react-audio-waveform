@@ -109,12 +109,20 @@ Options for scrollbar in `LiveStreamingRecorder`.
 
 ## Styling
 
-Components accept `className` and `style` props. They render canvas elements that can be styled with CSS.
+Components accept `className`, `style`, and all standard canvas HTML attributes.
 
 ```tsx
 <AudioWaveform
   blob={blob}
   className="h-32 w-full rounded-lg bg-slate-900 p-4"
+  appearance={{
+    barColor: "#3b82f6",
+    barWidth: 2,
+    barGap: 1,
+    barRadius: 1,
+    playheadColor: "#ef4444",
+    playheadWidth: 2,
+  }}
 />
 ```
 
