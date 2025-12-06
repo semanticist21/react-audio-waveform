@@ -24,6 +24,9 @@
       "style": {
         "useConst": "error",
         "useTemplate": "warn"
+      },
+      "a11y": {
+        "useAriaPropsSupportedByRole": "off"
       }
     }
   },

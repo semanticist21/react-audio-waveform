@@ -1,6 +1,6 @@
 {
   "name": "react-audio-wavekit",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "license": "CC0-1.0",
   "type": "module",
   "main": "dist/index.cjs",
