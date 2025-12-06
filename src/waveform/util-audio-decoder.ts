@@ -2,6 +2,8 @@
 // Audio Decoding Utilities (Common)
 // ============================================================================
 
+import { OfflineAudioContext } from "standardized-audio-context";
+
 export async function decodeAudioBlob(blob: Blob, sampleCount: number): Promise<number[]> {
   const arrayBuffer = await blob.arrayBuffer();
 
@@ -12,8 +14,9 @@ export async function decodeAudioBlob(blob: Blob, sampleCount: number): Promise<
 
   // OfflineAudioContext를 사용하면 사용자 제스처 없이도 디코딩 가능
   // AudioContext와 달리 실제 오디오 출력이 없어서 Autoplay Policy 제약을 받지 않음
-  // 초기 파라미터는 임시값 (디코딩 후 실제 값으로 대체됨)
-  const offlineContext = new OfflineAudioContext(1, 1, 44100);
+  // standardized-audio-context 사용: Safari/iOS의 decodeAudioData 버그 fix
+  // (Safari는 Promise 기반 문법 미지원, null로 reject하는 버그 있음)
+  const offlineContext = new OfflineAudioContext({ length: 1, sampleRate: 44100 });
 
   let audioBuffer: AudioBuffer;
   try {

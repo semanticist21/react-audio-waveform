@@ -1,6 +1,6 @@
 {
   "name": "react-audio-wavekit",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "license": "CC0-1.0",
   "type": "module",
   "main": "dist/index.cjs",
@@ -69,6 +69,7 @@
   },
   "dependencies": {
     "overlayscrollbars": "^2.13.0",
-    "overlayscrollbars-react": "^0.5.6"
+    "overlayscrollbars-react": "^0.5.6",
+    "standardized-audio-context": "^25.3.77"
   }
 }
