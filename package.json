@@ -1,7 +1,29 @@
 {
   "name": "react-audio-wavekit",
   "version": "0.2.1",
+  "description": "React component library for audio waveform visualization and live recording",
   "license": "CC0-1.0",
+  "author": "semanticist21",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/semanticist21/react-audio-waveform.git"
+  },
+  "homepage": "https://react-audio-wavekit.netlify.app",
+  "bugs": {
+    "url": "https://github.com/semanticist21/react-audio-waveform/issues"
+  },
+  "keywords": [
+    "react",
+    "audio",
+    "waveform",
+    "visualization",
+    "recorder",
+    "recording",
+    "canvas",
+    "audio-player",
+    "audio-recorder",
+    "web-audio"
+  ],
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
