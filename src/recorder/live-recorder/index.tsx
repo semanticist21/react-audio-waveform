@@ -43,8 +43,8 @@ export interface LiveRecorderRef {
 }
 
 /**
- * 실시간 오디오 주파수 시각화 컴포넌트
- * MediaRecorder의 오디오를 Web Audio API로 분석하여 바 형태로 렌더링
+ * Real-time audio frequency visualization component
+ * Analyzes MediaRecorder audio via Web Audio API and renders as bars
  */
 export const LiveRecorder = forwardRef<LiveRecorderRef, LiveRecorderProps>(
   (
@@ -69,14 +69,14 @@ export const LiveRecorder = forwardRef<LiveRecorderRef, LiveRecorderProps>(
       smoothingTimeConstant,
     });
 
-    // ref를 통해 내부 요소 접근 가능하게 노출
+    // Expose internal elements via ref
     useImperativeHandle(ref, () => ({
       getCanvas: () => canvasRef.current,
       getAudioContext: () => audioContextRef.current,
       getAnalyser: () => analyserRef.current,
     }));
 
-    // 녹음 중 애니메이션 루프
+    // Animation loop during recording
     useEffect(() => {
       if (!mediaRecorder || !canvasRef.current) {
         return;
@@ -84,13 +84,13 @@ export const LiveRecorder = forwardRef<LiveRecorderRef, LiveRecorderProps>(
 
       const canvas = canvasRef.current;
 
-      // appearance에서 bar 스타일 값 추출
+      // Extract bar style values from appearance
       const barWidth = appearance?.barWidth ?? 3;
       const barGap = appearance?.barGap ?? 1;
       const barRadius = appearance?.barRadius ?? 1.5;
       const barHeightScale = appearance?.barHeightScale ?? 0.95;
 
-      // barColor: appearance에서 지정하거나, CSS currentColor 사용
+      // barColor: from appearance or CSS currentColor
       const barColor = appearance?.barColor ?? getComputedStyle(canvas).color ?? "#3b82f6";
 
       const ctx = canvas.getContext("2d");
@@ -111,32 +111,32 @@ export const LiveRecorder = forwardRef<LiveRecorderRef, LiveRecorderProps>(
 
         if (!analyser || !dataArray || !ctx) return;
 
-        // 현재 canvas 크기 가져오기
+        // Get current canvas size
         const { width, height } = canvas.getBoundingClientRect();
         canvas.width = width * dpr;
         canvas.height = height * dpr;
         ctx.scale(dpr, dpr);
 
-        // time domain data 가져오기 (waveform)
+        // Get time domain data (waveform)
         analyser.getByteTimeDomainData(dataArray);
 
-        // canvas 클리어
+        // Clear canvas
         ctx.clearRect(0, 0, width, height);
 
-        // 바 개수 계산
+        // Calculate bar count
         const totalBarWidth = barWidth + barGap;
         const numBars = Math.floor((width + barGap) / totalBarWidth);
 
-        // 바 색상 설정
+        // Set bar color
         ctx.fillStyle = barColor;
 
-        // 바 그리기
+        // Draw bars
         for (let i = 0; i < numBars; i++) {
           const dataIndex = Math.floor((i / numBars) * bufferLength);
           const value = dataArray[dataIndex] || 0;
 
-          // byte 값(0-255)을 높이로 변환, 128(무음)을 중심으로
-          // amplitudeScale로 진폭 조절 (기본값 1.5, 낮을수록 파형이 낮아짐)
+          // Convert byte value (0-255) to height, centered at 128 (silence)
+          // amplitudeScale adjusts amplitude (default 1.5, lower = quieter waveform)
           const amplitude = Math.min(1, (Math.abs(value - 128) / 128) * amplitudeScale);
           const barHeight = Math.max(2, amplitude * height * barHeightScale);
 
@@ -151,7 +151,7 @@ export const LiveRecorder = forwardRef<LiveRecorderRef, LiveRecorderProps>(
         animationRef.current = requestAnimationFrame(draw);
       };
 
-      // pause/resume 이벤트 핸들러
+      // Pause/resume event handlers
       const handlePause = () => {
         isPaused = true;
       };
@@ -162,7 +162,7 @@ export const LiveRecorder = forwardRef<LiveRecorderRef, LiveRecorderProps>(
       mediaRecorder.addEventListener("pause", handlePause);
       mediaRecorder.addEventListener("resume", handleResume);
 
-      // analyser가 준비된 후 애니메이션 시작
+      // Start animation after analyser is ready
       const timeoutId = setTimeout(() => {
         draw();
       }, 50);
@@ -178,7 +178,7 @@ export const LiveRecorder = forwardRef<LiveRecorderRef, LiveRecorderProps>(
       };
     }, [mediaRecorder, appearance, amplitudeScale, analyserRef, dataArrayRef, bufferLengthRef]);
 
-    // idle 상태 그리기 (녹음 시작 전)
+    // Draw idle state (before recording starts)
     useEffect(() => {
       if (mediaRecorder || !showIdleState || !canvasRef.current) return;
 
@@ -188,7 +188,7 @@ export const LiveRecorder = forwardRef<LiveRecorderRef, LiveRecorderProps>(
 
       const dpr = window.devicePixelRatio || 1;
 
-      // appearance에서 bar 스타일 값 추출
+      // Extract bar style values from appearance
       const barWidth = appearance?.barWidth ?? 3;
       const barGap = appearance?.barGap ?? 1;
       const barRadius = appearance?.barRadius ?? 1.5;
@@ -201,7 +201,7 @@ export const LiveRecorder = forwardRef<LiveRecorderRef, LiveRecorderProps>(
 
       ctx.clearRect(0, 0, width, height);
 
-      // idle 상태: 최소 높이의 바 그리기
+      // Idle state: draw minimum height bars
       ctx.fillStyle = barColor;
       const minBarHeight = 2;
       const totalBarWidth = barWidth + barGap;

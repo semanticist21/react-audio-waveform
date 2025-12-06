@@ -1,10 +1,10 @@
 import { createContext, type ReactNode, useContext } from "react";
 import { type UseLiveAudioDataOptions, type UseLiveAudioDataReturn, useLiveAudioData } from "./use-live-audio-data.js";
 
-// Context 타입 정의
+// Context type definition
 type LiveRecorderContextValue = UseLiveAudioDataReturn;
 
-// Context 생성
+// Context creation
 const LiveRecorderContext = createContext<LiveRecorderContextValue | null>(null);
 
 // Provider Props
@@ -14,12 +14,12 @@ export interface LiveRecorderProviderProps extends UseLiveAudioDataOptions {
 
 /**
  * LiveRecorder Context Provider
- * 자식 컴포넌트에 실시간 오디오 데이터를 제공하는 루트 컴포넌트
+ * Root component that provides real-time audio data to child components
  */
 export function LiveRecorderProvider({ children, ...options }: LiveRecorderProviderProps) {
   const value = useLiveAudioData(options);
 
-  // render props 패턴 지원
+  // Support render props pattern
   const content = typeof children === "function" ? children(value) : children;
 
   return <LiveRecorderContext.Provider value={value}>{content}</LiveRecorderContext.Provider>;
@@ -27,7 +27,7 @@ export function LiveRecorderProvider({ children, ...options }: LiveRecorderProvi
 
 /**
  * LiveRecorder Context hook
- * LiveRecorder.Root 내부에서만 사용 가능
+ * Must be used within LiveRecorder.Root
  */
 export function useLiveRecorderContext(): LiveRecorderContextValue {
   const context = useContext(LiveRecorderContext);

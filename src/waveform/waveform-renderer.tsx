@@ -207,12 +207,12 @@ export const WaveformRenderer = forwardRef<WaveformRendererRef, WaveformRenderer
     [onSeek, duration, onSeekStart, onSeekDrag, onSeekEnd, getTimeFromPosition]
   );
 
-  // 키보드 핸들러: 좌우 화살표로 5초 단위 seek, Home/End로 처음/끝 이동
+  // Keyboard handler: Arrow keys seek 5s, Home/End jump to start/end
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLCanvasElement>) => {
       if (!onSeek || !duration || duration <= 0) return;
 
-      const SEEK_STEP = 5; // 5초 단위 이동
+      const SEEK_STEP = 5; // 5 second step
       const current = currentTime ?? 0;
 
       switch (e.key) {
@@ -237,14 +237,14 @@ export const WaveformRenderer = forwardRef<WaveformRendererRef, WaveformRenderer
     [onSeek, duration, currentTime]
   );
 
-  // 시간 포맷 (aria-valuetext용): "1분 30초" 형식
+  // Format time for screen readers (aria-valuetext): "1 minute 30 seconds"
   const formatTimeForScreen = (seconds: number): string => {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     if (mins > 0) {
-      return `${mins}분 ${secs}초`;
+      return `${mins} minute${mins > 1 ? "s" : ""} ${secs} second${secs !== 1 ? "s" : ""}`;
     }
-    return `${secs}초`;
+    return `${secs} second${secs !== 1 ? "s" : ""}`;
   };
 
   // Interactive when any seek callback is provided
@@ -255,7 +255,7 @@ export const WaveformRenderer = forwardRef<WaveformRendererRef, WaveformRenderer
     <canvas
       ref={canvasRef}
       role={isInteractive ? "slider" : "img"}
-      aria-label={isInteractive ? "오디오 탐색" : "오디오 파형"}
+      aria-label={isInteractive ? "Audio seek" : "Audio waveform"}
       aria-valuemin={isInteractive ? 0 : undefined}
       aria-valuemax={isInteractive ? Math.floor(duration) : undefined}
       aria-valuenow={isInteractive ? Math.floor(currentTime ?? 0) : undefined}

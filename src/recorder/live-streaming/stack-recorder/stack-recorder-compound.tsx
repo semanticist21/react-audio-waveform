@@ -4,7 +4,7 @@ import type { WaveformAppearance } from "../../../types";
 import { type UseRecordingAmplitudesOptions, useRecordingAmplitudes } from "../use-recording-amplitudes";
 
 // ============================================================================
-// LiveStreamingStackRecorder - 고정 너비 waveform (녹음이 길어지면 바가 압축됨)
+// LiveStreamingStackRecorder - Fixed width waveform (bars compress as recording grows)
 // ============================================================================
 
 export interface LiveStreamingStackRecorderProps
@@ -70,8 +70,8 @@ export const LiveStreamingStackRecorder = forwardRef<HTMLCanvasElement, LiveStre
         // Maintain fixed width (fit to container width)
         const canvasWidth = containerWidth;
 
-        // canvas.width/height는 ResizeObserver에서만 설정 (여기서 설정하면 매 프레임 버퍼 재생성으로 깜빡임)
-        // setTransform으로 DPR 스케일만 재적용
+        // canvas.width/height set only in ResizeObserver (setting here causes per-frame buffer recreation and flickering)
+        // Only reapply DPR scale with setTransform
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
         // Clear canvas
@@ -124,7 +124,7 @@ export const LiveStreamingStackRecorder = forwardRef<HTMLCanvasElement, LiveStre
     }, [amplitudes, isRecording, appearance]);
 
     // Track container size with ResizeObserver (cache size to prevent per-frame reflow)
-    // Canvas 크기는 여기서만 설정하여 매 프레임 재설정으로 인한 깜빡임 방지
+    // Canvas size is set here only to prevent flickering from per-frame resizing
     useEffect(() => {
       const canvas = canvasRef.current;
       if (!canvas) return;
@@ -139,7 +139,7 @@ export const LiveStreamingStackRecorder = forwardRef<HTMLCanvasElement, LiveStre
 
         sizeRef.current = { width, height };
 
-        // Canvas 크기는 ResizeObserver에서만 설정 (매 프레임 설정 시 버퍼 재생성으로 깜빡임 발생)
+        // Set canvas size only in ResizeObserver (per-frame setting causes buffer recreation and flickering)
         const dpr = window.devicePixelRatio || 1;
         canvas.width = width * dpr;
         canvas.height = height * dpr;
