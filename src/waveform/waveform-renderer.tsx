@@ -15,8 +15,14 @@ export interface WaveformRendererProps extends React.CanvasHTMLAttributes<HTMLCa
   currentTime?: number;
   /** Total audio duration in seconds */
   duration?: number;
-  /** Callback when user clicks on waveform */
+  /** Callback when user clicks on waveform (simple seek) */
   onSeek?: (time: number) => void;
+  /** Callback when drag-to-seek starts (use to pause playback) */
+  onSeekStart?: () => void;
+  /** Callback during drag-to-seek with current time (real-time updates) */
+  onSeekDrag?: (time: number) => void;
+  /** Callback when drag-to-seek ends (use to resume playback) */
+  onSeekEnd?: (time: number) => void;
 }
 
 export interface WaveformRendererRef {
@@ -24,12 +30,13 @@ export interface WaveformRendererRef {
 }
 
 export const WaveformRenderer = forwardRef<WaveformRendererRef, WaveformRendererProps>(function WaveformRenderer(
-  { peaks, appearance, currentTime, duration, onSeek, onClick, style, ...props },
+  { peaks, appearance, currentTime, duration, onSeek, onSeekStart, onSeekDrag, onSeekEnd, onClick, style, ...props },
   ref
 ) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sizeRef = useRef({ width: 0, height: 0 });
   const rafRef = useRef<number>(0);
+  const isDraggingRef = useRef(false);
 
   useImperativeHandle(ref, () => ({
     canvas: canvasRef.current,
@@ -126,22 +133,78 @@ export const WaveformRenderer = forwardRef<WaveformRendererRef, WaveformRenderer
     drawWaveform();
   }, [drawWaveform]);
 
-  // Click handler for seeking
-  const handleClick = useCallback(
-    (e: React.MouseEvent<HTMLCanvasElement>) => {
-      if (!onSeek || !duration || duration <= 0) return;
-
+  // Calculate time from mouse/touch position
+  const getTimeFromPosition = useCallback(
+    (clientX: number): number => {
       const canvas = canvasRef.current;
-      if (!canvas) return;
+      if (!canvas || !duration || duration <= 0) return 0;
 
       const rect = canvas.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const clickRatio = x / rect.width;
-      const newTime = Math.max(0, Math.min(clickRatio * duration, duration));
-
-      onSeek(newTime);
+      const x = clientX - rect.left;
+      const ratio = Math.max(0, Math.min(x / rect.width, 1));
+      return ratio * duration;
     },
-    [onSeek, duration]
+    [duration]
+  );
+
+  // Drag-to-seek: document-level handlers for dragging outside bounds
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDraggingRef.current) return;
+      const time = getTimeFromPosition(e.clientX);
+      onSeekDrag?.(time);
+    };
+
+    const handleMouseUp = (e: MouseEvent) => {
+      if (!isDraggingRef.current) return;
+      isDraggingRef.current = false;
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      const time = getTimeFromPosition(e.clientX);
+      onSeekEnd?.(time);
+    };
+
+    // Only add listeners if drag-to-seek is enabled
+    if (onSeekDrag || onSeekEnd) {
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+    }
+
+    return () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [getTimeFromPosition, onSeekDrag, onSeekEnd]);
+
+  // Mouse down handler: starts drag or simple click
+  const handleMouseDown = useCallback(
+    (e: React.MouseEvent<HTMLCanvasElement>) => {
+      if (!duration || duration <= 0) return;
+
+      // If drag-to-seek callbacks are provided, start dragging
+      if (onSeekStart || onSeekDrag || onSeekEnd) {
+        isDraggingRef.current = true;
+        document.body.style.cursor = "grabbing";
+        document.body.style.userSelect = "none";
+        onSeekStart?.();
+        const time = getTimeFromPosition(e.clientX);
+        onSeekDrag?.(time);
+      }
+    },
+    [duration, onSeekStart, onSeekDrag, onSeekEnd, getTimeFromPosition]
+  );
+
+  // Click handler for simple seeking (only when not dragging)
+  const handleClick = useCallback(
+    (e: React.MouseEvent<HTMLCanvasElement>) => {
+      // Skip if drag-to-seek is enabled (handled by mouse events)
+      if (onSeekStart || onSeekDrag || onSeekEnd) return;
+      if (!onSeek || !duration || duration <= 0) return;
+
+      const time = getTimeFromPosition(e.clientX);
+      onSeek(time);
+    },
+    [onSeek, duration, onSeekStart, onSeekDrag, onSeekEnd, getTimeFromPosition]
   );
 
   // 키보드 핸들러: 좌우 화살표로 5초 단위 seek, Home/End로 처음/끝 이동
@@ -184,8 +247,9 @@ export const WaveformRenderer = forwardRef<WaveformRendererRef, WaveformRenderer
     return `${secs}초`;
   };
 
-  // onSeek이 있으면 interactive slider, 없으면 정적 이미지
-  const isInteractive = !!onSeek && !!duration && duration > 0;
+  // Interactive when any seek callback is provided
+  const isInteractive = (!!onSeek || !!onSeekStart || !!onSeekDrag || !!onSeekEnd) && !!duration && duration > 0;
+  const isDragEnabled = !!onSeekStart || !!onSeekDrag || !!onSeekEnd;
 
   return (
     <canvas
@@ -199,9 +263,10 @@ export const WaveformRenderer = forwardRef<WaveformRendererRef, WaveformRenderer
         isInteractive ? `${formatTimeForScreen(currentTime ?? 0)} / ${formatTimeForScreen(duration)}` : undefined
       }
       tabIndex={isInteractive ? 0 : -1}
+      onMouseDown={isDragEnabled ? handleMouseDown : undefined}
       onClick={handleClick}
       onKeyDown={isInteractive ? handleKeyDown : undefined}
-      style={{ cursor: isInteractive ? "pointer" : undefined, ...style }}
+      style={{ cursor: isInteractive ? (isDragEnabled ? "grab" : "pointer") : undefined, ...style }}
       {...props}
     />
   );

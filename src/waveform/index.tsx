@@ -21,8 +21,14 @@ export interface AudioWaveformProps extends React.CanvasHTMLAttributes<HTMLCanva
   currentTime?: number;
   /** Total audio duration in seconds (required for playhead positioning) */
   duration?: number;
-  /** Callback when user clicks/seeks on waveform */
+  /** Callback when user clicks/seeks on waveform (simple seek) */
   onSeek?: (time: number) => void;
+  /** Callback when drag-to-seek starts (use to pause playback) */
+  onSeekStart?: () => void;
+  /** Callback during drag-to-seek with current time (real-time updates) */
+  onSeekDrag?: (time: number) => void;
+  /** Callback when drag-to-seek ends (use to resume playback) */
+  onSeekEnd?: (time: number) => void;
 }
 
 export interface AudioWaveformRef {
@@ -36,7 +42,19 @@ const getInitialSampleCount = () => {
 };
 
 export const AudioWaveform = forwardRef<AudioWaveformRef, AudioWaveformProps>(function AudioWaveform(
-  { blob, peaks: precomputedPeaks, appearance, suspense = false, currentTime, duration, onSeek, ...props },
+  {
+    blob,
+    peaks: precomputedPeaks,
+    appearance,
+    suspense = false,
+    currentTime,
+    duration,
+    onSeek,
+    onSeekStart,
+    onSeekDrag,
+    onSeekEnd,
+    ...props
+  },
   ref
 ) {
   const [decodedPeaks, setDecodedPeaks] = useState<number[] | null>(null);
@@ -113,6 +131,9 @@ export const AudioWaveform = forwardRef<AudioWaveformRef, AudioWaveformProps>(fu
       currentTime={currentTime}
       duration={duration}
       onSeek={onSeek}
+      onSeekStart={onSeekStart}
+      onSeekDrag={onSeekDrag}
+      onSeekEnd={onSeekEnd}
       {...props}
     />
   );

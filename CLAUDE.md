@@ -29,9 +29,8 @@ src/
 ├── constants.ts           # Default appearance values (DEFAULT_WAVEFORM_APPEARANCE, DEFAULT_PLAYHEAD_APPEARANCE)
 ├── waveform/              # Static waveform visualization
 │   ├── index.tsx                  # Main AudioWaveform component
-│   ├── use-audio-waveform.ts      # Headless hook
 │   ├── waveform-renderer.tsx      # Canvas rendering logic
-│   ├── util-audio-decoder.ts      # Web Audio API decoding
+│   ├── util-audio-decoder.ts      # Audio decoding (native + WASM fallback)
 │   └── util-suspense.ts           # React Suspense cache
 ├── recorder/              # Live recording components
 │   ├── live-recorder/         # Real-time frequency bars
@@ -75,7 +74,7 @@ src/
 - **Imports:** Use relative paths; Biome auto-organizes import order
 - **Commit messages:** Conventional commit format, title only (no co-authored-by, no emoji)
 - **Code quality:** Always run `bun run fix` after code changes, then `bun run check` to verify
-- **Comments:** Add Korean comments for important code sections explaining key logic
+- **Comments:** Add English comments for important code sections explaining key logic
 
 ## Component API Patterns
 
@@ -93,7 +92,7 @@ function AudioPlayer() {
   const [duration, setDuration] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(null);
 
-  // 오디오 파일을 Blob으로 로드
+  // Load audio file as Blob
   useEffect(() => {
     fetch("/audio.mp3")
       .then((res) => res.blob())
@@ -103,7 +102,7 @@ function AudioPlayer() {
       });
   }, []);
 
-  // 오디오 이벤트 리스너 설정
+  // Setup audio event listeners
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
@@ -120,7 +119,7 @@ function AudioPlayer() {
     };
   }, [audioUrl]);
 
-  // Waveform 클릭 시 해당 위치로 이동
+  // Seek to position when waveform is clicked
   const handleSeek = (time: number) => {
     if (audioRef.current) {
       audioRef.current.currentTime = time;
@@ -131,7 +130,7 @@ function AudioPlayer() {
 
   return (
     <div>
-      {/* Waveform with playhead - canvas에 직접 스타일 적용 */}
+      {/* Waveform with playhead */}
       <AudioWaveform
         blob={audioBlob}
         className="h-40 w-full rounded-xl bg-slate-950/50 p-4"
@@ -148,7 +147,7 @@ function AudioPlayer() {
         }}
       />
 
-      {/* 숨겨진 audio 요소 */}
+      {/* Hidden audio element */}
       <audio ref={audioRef} src={audioUrl} />
     </div>
   );
@@ -177,17 +176,17 @@ function RecorderExample() {
 
   return (
     <div className="flex items-center gap-4">
-      {/* Record/Pause 버튼 */}
+      {/* Record/Pause button */}
       <button type="button" onClick={handleRecordClick}>
         {!isRecording || isPaused ? "Record" : "Pause"}
       </button>
 
-      {/* Timeline waveform - 녹음 진행에 따라 가로로 늘어남 */}
+      {/* Timeline waveform - grows horizontally as recording progresses */}
       <LiveStreamingRecorder.Root mediaRecorder={mediaRecorder} className="h-12 w-72 rounded-sm bg-slate-100">
         <LiveStreamingRecorder.Canvas />
       </LiveStreamingRecorder.Root>
 
-      {/* Stop 버튼 */}
+      {/* Stop button */}
       <button type="button" onClick={stopRecording} disabled={!isRecording}>
         Stop
       </button>
@@ -209,7 +208,7 @@ function StackRecorderExample() {
         Record
       </button>
 
-      {/* Fixed width waveform - 녹음이 길어지면 바가 압축됨 (simple component) */}
+      {/* Fixed width waveform - bars compress as recording grows */}
       <LiveStreamingStackRecorder
         mediaRecorder={mediaRecorder}
         className="h-12 w-72 rounded-sm bg-slate-100"
@@ -239,9 +238,9 @@ function StackRecorderExample() {
 - **Appearance System:** All waveform components use `appearance` prop with `WaveformAppearance` type. Defaults exported from `constants.ts`:
   - `DEFAULT_WAVEFORM_APPEARANCE`: barColor="#3b82f6", barWidth=1, barGap=1, barRadius=0, barHeightScale=0.95
   - `DEFAULT_PLAYHEAD_APPEARANCE`: playheadColor="#ef4444", playheadWidth=2
-- **Audio Decoding:** Web Audio API (`AudioContext.decodeAudioData`) for blob processing
+- **Audio Decoding:** Native Web Audio API first, WASM fallback (mpg123-decoder) for mobile compatibility. Supports `peaks` prop to skip decoding entirely.
 - **Device Pixel Ratio:** Automatic DPR support for sharp canvas rendering on retina displays
-- **Scrolling vs Fixed Width:** `LiveStreamingRecorder`는 스크롤 방식 (Voice Memos 스타일), `LiveStreamingStackRecorder`는 고정 너비 방식 (바가 압축됨)
+- **Scrolling vs Fixed Width:** `LiveStreamingRecorder` uses scrolling (Voice Memos style), `LiveStreamingStackRecorder` uses fixed width (bars compress)
 - **Playhead & Seek:** `AudioWaveform` supports playhead visualization and click-to-seek - pass `currentTime`, `duration`, and `onSeek` props. Uses `AudioWaveformAppearance` which extends `WaveformAppearance` with `playheadColor` and `playheadWidth`.
 
 ## Development Workflow
@@ -267,4 +266,4 @@ function StackRecorderExample() {
    - No co-authored-by, no emoji in commits
    - Always run checks before committing
 
-아직 출시 안한 라이브러리니까 호환성 생각하지말고 코딩좀해라
+Don't worry about backward compatibility - this library is still in early development.

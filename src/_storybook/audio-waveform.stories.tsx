@@ -10,6 +10,8 @@ function AudioWaveformPlayer() {
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
+  const [isSeeking, setIsSeeking] = useState(false);
+  const wasPlayingRef = useRef(false);
   const audioRef = useRef<HTMLAudioElement>(null);
   const audioUrlRef = useRef<string>("");
 
@@ -75,10 +77,31 @@ function AudioWaveformPlayer() {
     }
   };
 
-  const handleSeek = (time: number) => {
+  // Drag-to-seek: pause playback while dragging
+  const handleSeekStart = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    wasPlayingRef.current = isPlaying;
+    if (isPlaying) {
+      audio.pause();
+    }
+    setIsSeeking(true);
+  };
+
+  // Drag-to-seek: update time in real-time
+  const handleSeekDrag = (time: number) => {
+    setCurrentTime(time);
+  };
+
+  // Drag-to-seek: resume playback if it was playing before
+  const handleSeekEnd = (time: number) => {
     const audio = audioRef.current;
     if (!audio) return;
     audio.currentTime = time;
+    setIsSeeking(false);
+    if (wasPlayingRef.current) {
+      audio.play();
+    }
   };
 
   const handleSkipBackward = () => {
@@ -136,13 +159,15 @@ function AudioWaveformPlayer() {
           </div>
         </div>
 
-        {/* Waveform visualization (with playhead) */}
+        {/* Waveform visualization (with drag-to-seek) */}
         <AudioWaveform
           blob={audioBlob}
           className="h-40 w-full rounded-xl bg-slate-950/50 p-4 ring-1 ring-slate-700/50 transition-all hover:ring-slate-600/50"
           currentTime={currentTime}
           duration={duration}
-          onSeek={handleSeek}
+          onSeekStart={handleSeekStart}
+          onSeekDrag={handleSeekDrag}
+          onSeekEnd={handleSeekEnd}
           appearance={{
             barColor: "#3b82f6",
             barWidth: 1,
@@ -152,6 +177,9 @@ function AudioWaveformPlayer() {
             playheadWidth: 3,
           }}
         />
+
+        {/* Seeking indicator */}
+        {isSeeking && <div className="text-center text-sm text-slate-400">Seeking... {formatTime(currentTime)}</div>}
 
         {/* Time display */}
         <div className="flex items-center justify-between px-2 text-sm">
@@ -232,6 +260,8 @@ export const Playground: StoryObj<PlaygroundArgs> = {
     const [audioUrl, setAudioUrl] = useState<string>("");
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const wasPlayingRef = useRef(false);
     const audioRef = useRef<HTMLAudioElement>(null);
     const audioUrlRef = useRef<string>("");
 
@@ -259,20 +289,41 @@ export const Playground: StoryObj<PlaygroundArgs> = {
 
       const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
       const handleDurationChange = () => setDuration(audio.duration);
+      const handlePlay = () => setIsPlaying(true);
+      const handlePause = () => setIsPlaying(false);
 
       audio.addEventListener("timeupdate", handleTimeUpdate);
       audio.addEventListener("durationchange", handleDurationChange);
+      audio.addEventListener("play", handlePlay);
+      audio.addEventListener("pause", handlePause);
 
       if (audio.duration) setDuration(audio.duration);
 
       return () => {
         audio.removeEventListener("timeupdate", handleTimeUpdate);
         audio.removeEventListener("durationchange", handleDurationChange);
+        audio.removeEventListener("play", handlePlay);
+        audio.removeEventListener("pause", handlePause);
       };
     }, [audioUrl]);
 
-    const handleSeek = (time: number) => {
-      if (audioRef.current) audioRef.current.currentTime = time;
+    // Drag-to-seek handlers
+    const handleSeekStart = () => {
+      const audio = audioRef.current;
+      if (!audio) return;
+      wasPlayingRef.current = isPlaying;
+      if (isPlaying) audio.pause();
+    };
+
+    const handleSeekDrag = (time: number) => {
+      setCurrentTime(time);
+    };
+
+    const handleSeekEnd = (time: number) => {
+      const audio = audioRef.current;
+      if (!audio) return;
+      audio.currentTime = time;
+      if (wasPlayingRef.current) audio.play();
     };
 
     if (!audioBlob) return <p className="p-4 text-slate-400">Loading...</p>;
@@ -284,7 +335,9 @@ export const Playground: StoryObj<PlaygroundArgs> = {
           className="h-32 w-full rounded-xl bg-slate-900 p-4"
           currentTime={currentTime}
           duration={duration}
-          onSeek={handleSeek}
+          onSeekStart={handleSeekStart}
+          onSeekDrag={handleSeekDrag}
+          onSeekEnd={handleSeekEnd}
           appearance={{
             barColor: args.barColor,
             barWidth: args.barWidth,
