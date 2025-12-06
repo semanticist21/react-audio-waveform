@@ -32,7 +32,7 @@ Visualize existing audio files (mp3, wav, etc.) with playhead and seek support.
 
 ![AudioWaveform](https://react-audio-wavekit.netlify.app/audio-wave-form.png)
 
-Static waveform visualization with playhead and click-to-seek.
+Static waveform visualization with playhead and drag-to-seek.
 
 [▶ Demo](https://react-audio-wavekit.netlify.app/?path=/story/waveform-audiowaveform--default)
 
@@ -41,7 +41,12 @@ Static waveform visualization with playhead and click-to-seek.
   blob={audioBlob}
   currentTime={currentTime}
   duration={duration}
-  onSeek={(time) => (audioRef.current.currentTime = time)}
+  onSeekStart={() => audio.pause()}
+  onSeekDrag={(time) => setCurrentTime(time)}
+  onSeekEnd={(time) => {
+    audio.currentTime = time;
+    audio.play();
+  }}
 />
 ```
 
@@ -51,7 +56,10 @@ Static waveform visualization with playhead and click-to-seek.
 | `peaks` | `number[]` | - | Pre-computed peaks (0-1 range, skips decoding) |
 | `currentTime` | `number` | - | Current playback time in seconds |
 | `duration` | `number` | - | Total audio duration in seconds |
-| `onSeek` | `(time: number) => void` | - | Callback when user clicks on waveform |
+| `onSeek` | `(time: number) => void` | - | Callback for simple click-to-seek |
+| `onSeekStart` | `() => void` | - | Callback when drag starts (pause playback) |
+| `onSeekDrag` | `(time: number) => void` | - | Callback during drag (real-time updates) |
+| `onSeekEnd` | `(time: number) => void` | - | Callback when drag ends (resume playback) |
 | `suspense` | `boolean` | `false` | Enable React Suspense mode |
 | `appearance` | `AudioWaveformAppearance` | - | See [Appearance Options](#appearance-options) |
 

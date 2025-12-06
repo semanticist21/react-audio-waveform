@@ -394,7 +394,12 @@ export const Playground: StoryObj<PlaygroundArgs> = {
   className="h-32 w-full rounded-xl bg-slate-900 p-4"
   currentTime={currentTime}
   duration={duration}
-  onSeek={(time) => { audioRef.current.currentTime = time; }}
+  onSeekStart={() => audio.pause()}
+  onSeekDrag={(time) => setCurrentTime(time)}
+  onSeekEnd={(time) => {
+    audio.currentTime = time;
+    if (wasPlaying) audio.play();
+  }}
   appearance={{
     barColor: "#3b82f6",
     barWidth: 1,
@@ -454,6 +459,7 @@ function AudioWaveformPlayer() {
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
+  const wasPlayingRef = useRef(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   // Load audio file as Blob and create URL
@@ -475,36 +481,47 @@ function AudioWaveformPlayer() {
     const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
     const handleDurationChange = () => setDuration(audio.duration);
     const handleEnded = () => setIsPlaying(false);
+    const handlePlay = () => setIsPlaying(true);
+    const handlePause = () => setIsPlaying(false);
 
     audio.addEventListener("timeupdate", handleTimeUpdate);
     audio.addEventListener("durationchange", handleDurationChange);
     audio.addEventListener("ended", handleEnded);
+    audio.addEventListener("play", handlePlay);
+    audio.addEventListener("pause", handlePause);
 
     return () => {
       audio.removeEventListener("timeupdate", handleTimeUpdate);
       audio.removeEventListener("durationchange", handleDurationChange);
       audio.removeEventListener("ended", handleEnded);
+      audio.removeEventListener("play", handlePlay);
+      audio.removeEventListener("pause", handlePause);
     };
   }, [audioUrl]);
 
   const togglePlay = () => {
     const audio = audioRef.current;
     if (!audio) return;
-
-    if (isPlaying) {
-      audio.pause();
-      setIsPlaying(false);
-    } else {
-      audio.play();
-      setIsPlaying(true);
-    }
+    isPlaying ? audio.pause() : audio.play();
   };
 
-  // Seek to position when waveform is clicked
-  const handleSeek = (time: number) => {
+  // Drag-to-seek handlers
+  const handleSeekStart = () => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    wasPlayingRef.current = isPlaying;
+    if (isPlaying) audio.pause();
+  };
+
+  const handleSeekDrag = (time: number) => {
+    setCurrentTime(time);
+  };
+
+  const handleSeekEnd = (time: number) => {
     const audio = audioRef.current;
     if (!audio) return;
     audio.currentTime = time;
+    if (wasPlayingRef.current) audio.play();
   };
 
   const formatTime = (seconds: number) => {
@@ -519,13 +536,15 @@ function AudioWaveformPlayer() {
     <div className="flex w-full max-w-3xl flex-col gap-6 rounded-3xl bg-slate-800 p-8">
       <h2 className="text-2xl font-bold text-white">Audio Waveform Player</h2>
 
-      {/* Waveform visualization (with playhead) */}
+      {/* Waveform visualization (with drag-to-seek) */}
       <AudioWaveform
         blob={audioBlob}
         className="h-40 w-full rounded-xl bg-slate-950/50 p-4"
         currentTime={currentTime}
         duration={duration}
-        onSeek={handleSeek}
+        onSeekStart={handleSeekStart}
+        onSeekDrag={handleSeekDrag}
+        onSeekEnd={handleSeekEnd}
         appearance={{
           barColor: "#3b82f6",
           barWidth: 1,
