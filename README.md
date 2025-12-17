@@ -101,6 +101,8 @@ Headless hook to manage recording state. Use with recorder components below.
 
 ![LiveStreamingRecorder](https://react-audio-wavekit.netlify.app/live-stream.png)
 
+_This is an example image. The component includes only the waveform._
+
 Scrolling timeline waveform (Voice Memos style). Canvas grows horizontally as recording continues.
 
 [▶ Demo](https://react-audio-wavekit.netlify.app/?path=/story/recorder-livestreamingrecorder--default)
@@ -136,6 +138,8 @@ Scrolling timeline waveform (Voice Memos style). Canvas grows horizontally as re
 
 ![LiveStreamingStackRecorder](https://react-audio-wavekit.netlify.app/live-stream-stack.png)
 
+_This is an example image. The component includes only the waveform._
+
 Fixed-width waveform where bars compress as recording grows.
 
 [▶ Demo](https://react-audio-wavekit.netlify.app/?path=/story/recorder-livestreamingstackrecorder--default)
@@ -160,6 +164,8 @@ Fixed-width waveform where bars compress as recording grows.
 ### LiveRecorder
 
 ![LiveRecorder](https://react-audio-wavekit.netlify.app/live-recorder.png)
+
+_This is an example image. The component includes only the waveform._
 
 Real-time frequency bars visualization.
 

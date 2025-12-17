@@ -76,7 +76,7 @@ export async function decodeAudioBlob(blob: Blob, sampleCount: number): Promise<
     throw new Error(
       `Unable to decode audio data (type: ${blob.type}, size: ${blob.size} bytes). ` +
         `Both native Web Audio API and WASM decoder failed. ` +
-        `This may be due to an unsupported audio format or corrupted data.`
+        `Consider providing pre-decoded 'peaks' to the AudioWaveform component to bypass decoding.`
     );
   }
 }
