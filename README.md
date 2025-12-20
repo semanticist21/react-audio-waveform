@@ -38,6 +38,8 @@ Static waveform visualization with playhead and drag-to-seek.
 
 ```tsx
 <AudioWaveform
+  // Also accepts classnames, compatible with tailwind.
+  className=""
   blob={audioBlob}
   currentTime={currentTime}
   duration={duration}
@@ -46,6 +48,11 @@ Static waveform visualization with playhead and drag-to-seek.
   onSeekEnd={(time) => {
     audio.currentTime = time;
     audio.play();
+  }}
+  style={{
+    // Or use classNames with Tailwind
+    width: '400px',
+    height: '100px',
   }}
 />
 ```
@@ -228,6 +235,11 @@ Components accept `className`, `style`, and all standard canvas HTML attributes.
 <AudioWaveform
   blob={blob}
   className="h-32 w-full rounded-lg bg-slate-900 p-4"
+  // or style prop
+  style={{
+    width: "100%",
+    height: "100%",
+  }}
   appearance={{
     barColor: "#3b82f6",
     barWidth: 2,
