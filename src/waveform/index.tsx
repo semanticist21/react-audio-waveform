@@ -59,11 +59,16 @@ export const AudioWaveform = forwardRef<AudioWaveformRef, AudioWaveformProps>(fu
 ) {
   const [decodedPeaks, setDecodedPeaks] = useState<number[] | null>(null);
   const [error, setError] = useState<Error | null>(null);
+  const [isMounted, setIsMounted] = useState(false);
   const blobRef = useRef<Blob | null>(null);
   const rendererRef = useRef<WaveformRendererRef>(null);
 
   // Sample count based on screen width for sharp rendering on high-DPI displays
   const sampleCount = useMemo(() => getInitialSampleCount(), []);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   // Forward ref to WaveformRenderer's canvas
   useEffect(() => {
@@ -78,7 +83,8 @@ export const AudioWaveform = forwardRef<AudioWaveformRef, AudioWaveformProps>(fu
   const shouldDecode = !precomputedPeaks && blob;
 
   // Suspense mode: Use React 19-style Promise unwrapping
-  const suspensePeaks = shouldDecode && suspense ? unwrapPromise(getAudioData(blob, sampleCount)) : null;
+  const suspensePeaks =
+    shouldDecode && suspense && isMounted ? unwrapPromise(getAudioData(blob, sampleCount)) : null;
 
   // Non-suspense mode: Decode audio when blob changes
   useEffect(() => {

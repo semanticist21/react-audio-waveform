@@ -70,6 +70,8 @@ Static waveform visualization with playhead and drag-to-seek.
 | `suspense` | `boolean` | `false` | Enable React Suspense mode |
 | `appearance` | `AudioWaveformAppearance` | - | See [Appearance Options](#appearance-options) |
 
+**SSR note:** When `suspense` is `true`, decoding only starts on the client after mount. On the server (and during the first client render), the waveform renders without peaks, so wrap the component in a Suspense boundary to show a fallback during hydration.
+
 ---
 
 ## Recorder
