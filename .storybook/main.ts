@@ -1,15 +1,23 @@
-import type { StorybookConfig } from "@storybook/react-vite";
-import tailwindcss from "@tailwindcss/vite";
+import tailwindcss from "@tailwindcss/postcss";
+import type { StorybookConfig } from "storybook-react-rsbuild";
 
 const config: StorybookConfig = {
   stories: ["../src/**/*.stories.@(js|jsx|ts|tsx)"],
   addons: ["@storybook/addon-docs"],
   framework: {
-    name: "@storybook/react-vite",
+    name: "storybook-react-rsbuild",
     options: {},
   },
-  viteFinal: async (config) => {
-    config.plugins = [...(config.plugins || []), tailwindcss()];
+  rsbuildFinal: (config) => {
+    // Tailwind CSS v4 via PostCSS
+    config.tools = {
+      ...config.tools,
+      postcss: {
+        postcssOptions: {
+          plugins: [tailwindcss],
+        },
+      },
+    };
     return config;
   },
 };
