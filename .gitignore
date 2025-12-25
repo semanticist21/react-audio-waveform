@@ -10,3 +10,5 @@ storybook-static
 # Next.js test app
 next-test/.next
 next-test/node_modules
+next-test/*.png
+storybook-*.png

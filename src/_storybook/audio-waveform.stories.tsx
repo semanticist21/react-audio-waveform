@@ -450,6 +450,111 @@ export const Simple: Story = {
   },
 };
 
+// M4A format story - tests AAC decoding (Safari/iOS native format)
+export const M4A: Story = {
+  render: () => {
+    const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+    const [audioUrl, setAudioUrl] = useState<string>("");
+    const [currentTime, setCurrentTime] = useState(0);
+    const [duration, setDuration] = useState(0);
+    const audioRef = useRef<HTMLAudioElement>(null);
+    const audioUrlRef = useRef<string>("");
+
+    useEffect(() => {
+      fetch("/ios-sample.m4a")
+        .then((res) => res.blob())
+        .then((blob) => {
+          setAudioBlob(blob);
+          const url = URL.createObjectURL(blob);
+          audioUrlRef.current = url;
+          setAudioUrl(url);
+        })
+        .catch(console.error);
+
+      return () => {
+        if (audioUrlRef.current) {
+          URL.revokeObjectURL(audioUrlRef.current);
+        }
+      };
+    }, []);
+
+    useEffect(() => {
+      const audio = audioRef.current;
+      if (!audio || !audioUrl) return;
+
+      const handleTimeUpdate = () => setCurrentTime(audio.currentTime);
+      const handleDurationChange = () => setDuration(audio.duration);
+
+      audio.addEventListener("timeupdate", handleTimeUpdate);
+      audio.addEventListener("durationchange", handleDurationChange);
+
+      if (audio.duration) setDuration(audio.duration);
+
+      return () => {
+        audio.removeEventListener("timeupdate", handleTimeUpdate);
+        audio.removeEventListener("durationchange", handleDurationChange);
+      };
+    }, [audioUrl]);
+
+    const handleSeek = (time: number) => {
+      const audio = audioRef.current;
+      if (audio) audio.currentTime = time;
+    };
+
+    if (!audioBlob) return <p className="p-4 text-slate-400">Loading M4A...</p>;
+
+    return (
+      <div className="flex flex-col gap-4 p-8">
+        <h2 className="text-xl font-semibold text-slate-200">M4A Format (AAC - Safari/iOS native)</h2>
+        <AudioWaveform
+          blob={audioBlob}
+          className="h-32 w-full rounded-xl bg-slate-900 p-4"
+          currentTime={currentTime}
+          duration={duration}
+          onSeekEnd={handleSeek}
+          appearance={{
+            barColor: "#22c55e",
+            barWidth: 2,
+            barGap: 1,
+            barRadius: 1,
+            playheadColor: "#f59e0b",
+            playheadWidth: 2,
+          }}
+        />
+        {audioUrl && (
+          // biome-ignore lint/a11y/useMediaCaption: Demo audio
+          <audio ref={audioRef} src={audioUrl} controls className="w-full" />
+        )}
+      </div>
+    );
+  },
+  parameters: {
+    layout: "fullscreen",
+    docs: {
+      source: {
+        code: `import { AudioWaveform } from "react-audio-wavekit";
+
+// M4A files work with native Web Audio API on all browsers
+<AudioWaveform
+  blob={m4aBlob}
+  className="h-32 w-full rounded-xl bg-slate-900 p-4"
+  currentTime={currentTime}
+  duration={duration}
+  onSeekEnd={(time) => { audio.currentTime = time; }}
+  appearance={{
+    barColor: "#22c55e",
+    barWidth: 2,
+    barGap: 1,
+    barRadius: 1,
+    playheadColor: "#f59e0b",
+    playheadWidth: 2,
+  }}
+/>`,
+      },
+    },
+  },
+};
+
 export const Default: Story = {
   parameters: {
     docs: {
