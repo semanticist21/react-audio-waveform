@@ -1,6 +1,6 @@
 {
   "name": "react-audio-wavekit",
-  "version": "0.2.9",
+  "version": "0.2.10",
   "description": "React component library for audio waveform visualization and live recording",
   "license": "CC0-1.0",
   "author": "semanticist21",
