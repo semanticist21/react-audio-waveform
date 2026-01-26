@@ -1,6 +1,6 @@
 {
   "name": "react-audio-wavekit",
-  "version": "0.2.11",
+  "version": "0.2.12",
   "description": "React component library for audio waveform visualization and live recording",
   "license": "CC0-1.0",
   "author": "semanticist21",
@@ -71,10 +71,10 @@
     "@microsoft/api-extractor": "^7.55.2",
     "@rsbuild/plugin-react": "^1.4.3",
     "@rslib/core": "^0.18.6",
-    "@storybook/addon-docs": "^10.1.11",
-    "@storybook/react": "^10.1.11",
+    "@storybook/addon-docs": "^10.2.0",
+    "@storybook/react": "^10.2.0",
     "@tailwindcss/postcss": "^4.1.18",
-    "@testing-library/react": "^16.3.1",
+    "@testing-library/react": "^16.3.2",
     "@types/node": "24.10.1",
     "@types/react": "19.2.7",
     "@types/react-dom": "19.2.3",
@@ -83,12 +83,12 @@
     "lucide-react": "0.555.0",
     "react": "19.2.1",
     "react-dom": "19.2.1",
-    "storybook": "^10.1.11",
+    "storybook": "^10.2.0",
     "storybook-builder-rsbuild": "^3.2.2",
     "storybook-react-rsbuild": "^3.2.2",
     "tailwindcss": "4.1.17",
     "typescript": "5.9.3",
-    "vitest": "^4.0.17"
+    "vitest": "^4.0.18"
   },
   "dependencies": {
     "mpg123-decoder": "^1.0.3"
