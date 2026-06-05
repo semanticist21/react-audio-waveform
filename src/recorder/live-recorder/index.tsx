@@ -109,7 +109,12 @@ export const LiveRecorder = forwardRef<LiveRecorderRef, LiveRecorderProps>(
         const dataArray = dataArrayRef.current;
         const bufferLength = bufferLengthRef.current;
 
-        if (!analyser || !dataArray || !ctx) return;
+        // Analyser may not be ready on the first frames — keep the loop alive
+        // instead of terminating it permanently.
+        if (!analyser || !dataArray || !ctx) {
+          animationRef.current = requestAnimationFrame(draw);
+          return;
+        }
 
         // Get current canvas size
         const { width, height } = canvas.getBoundingClientRect();

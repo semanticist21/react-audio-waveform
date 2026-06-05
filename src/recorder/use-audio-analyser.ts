@@ -47,6 +47,11 @@ export function useAudioAnalyser({
     try {
       // Create audio context and analyser
       audioContext = new AudioContext();
+      // Autoplay policy may start the context suspended; resume so the analyser
+      // actually receives samples. Safe to ignore the returned promise.
+      if (audioContext.state === "suspended") {
+        void audioContext.resume();
+      }
       analyser = audioContext.createAnalyser();
       analyser.fftSize = fftSize;
       analyser.smoothingTimeConstant = smoothingTimeConstant;

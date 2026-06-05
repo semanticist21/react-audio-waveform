@@ -41,8 +41,15 @@ export function useRecordingAmplitudes(options: UseRecordingAmplitudesOptions): 
     amplitudeScale = 1.5,
   } = options;
 
-  // External store pattern: Efficient updates without array copying
+  // External store pattern.
+  // amplitudeDataRef is the mutable accumulator; snapshotRef holds the immutable
+  // value handed to useSyncExternalStore. A new snapshot reference is produced
+  // lazily (once per render, not once per push) so React's Object.is comparison
+  // actually detects changes — returning the same mutated array reference would
+  // silently suppress re-renders.
   const amplitudeDataRef = useRef<number[]>([]);
+  const snapshotRef = useRef<number[]>([]);
+  const dirtyRef = useRef(false);
   const listenersRef = useRef<Set<() => void>>(new Set());
   const samplingIntervalRef = useRef<number | null>(null);
 
@@ -52,7 +59,13 @@ export function useRecordingAmplitudes(options: UseRecordingAmplitudesOptions): 
     return () => listenersRef.current.delete(onStoreChange);
   }, []);
 
-  const getSnapshot = useCallback(() => amplitudeDataRef.current, []);
+  const getSnapshot = useCallback(() => {
+    if (dirtyRef.current) {
+      snapshotRef.current = amplitudeDataRef.current.slice();
+      dirtyRef.current = false;
+    }
+    return snapshotRef.current;
+  }, []);
 
   // Notify subscribers of changes (no array copy)
   const notifyListeners = useCallback(() => {
@@ -72,6 +85,7 @@ export function useRecordingAmplitudes(options: UseRecordingAmplitudesOptions): 
   // Clear amplitude data
   const clearAmplitudes = useCallback(() => {
     amplitudeDataRef.current = [];
+    dirtyRef.current = true;
     notifyListeners();
   }, [notifyListeners]);
 
@@ -81,6 +95,7 @@ export function useRecordingAmplitudes(options: UseRecordingAmplitudesOptions): 
     if (mediaRecorder !== prevMediaRecorderRef.current) {
       // MediaRecorder instance changed = new recording starts → reset amplitudes
       amplitudeDataRef.current = [];
+      dirtyRef.current = true;
       notifyListeners();
       prevMediaRecorderRef.current = mediaRecorder;
     }
@@ -114,6 +129,7 @@ export function useRecordingAmplitudes(options: UseRecordingAmplitudesOptions): 
       // Push directly without array copy, then notify subscribers
       const amplitude = Math.min(1, rms * amplitudeScale);
       amplitudeDataRef.current.push(amplitude);
+      dirtyRef.current = true;
       notifyListeners();
     };
 

@@ -72,6 +72,9 @@ export const useAudioRecorder = (config: UseAudioRecorderConfig = {}): UseAudioR
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const isRecordingRef = useRef(false);
   const isPausedRef = useRef(false);
+  // Set when clearRecording() stops an active recording, so the async onstop
+  // handler discards the recording instead of finalizing it into a blob.
+  const isClearingRef = useRef(false);
 
   // Sync state to refs
   useEffect(() => {
@@ -123,10 +126,6 @@ export const useAudioRecorder = (config: UseAudioRecorderConfig = {}): UseAudioR
       };
 
       recorder.onstop = () => {
-        // Create final blob from chunks
-        const blob = new Blob(audioChunksRef.current, { type: recorder.mimeType });
-        setRecordingBlob(blob);
-        onRecordingComplete?.(blob);
         setIsRecording(false);
         setIsPaused(false);
         setMediaRecorder(null);
@@ -138,10 +137,23 @@ export const useAudioRecorder = (config: UseAudioRecorderConfig = {}): UseAudioR
           }
           streamRef.current = null;
         }
+
+        // If the recording was cleared mid-flight, discard it instead of
+        // finalizing a blob / firing onRecordingComplete.
+        if (isClearingRef.current) {
+          isClearingRef.current = false;
+          return;
+        }
+
+        // Create final blob from chunks
+        const blob = new Blob(audioChunksRef.current, { type: recorder.mimeType });
+        setRecordingBlob(blob);
+        onRecordingComplete?.(blob);
       };
 
       recorder.onerror = (event) => {
-        setError(new Error(`Recording error: ${event}`));
+        const mediaError = (event as Event & { error?: DOMException }).error;
+        setError(mediaError ?? new Error(`Recording error: ${event.type}`));
         setIsRecording(false);
         setIsPaused(false);
       };
@@ -183,6 +195,8 @@ export const useAudioRecorder = (config: UseAudioRecorderConfig = {}): UseAudioR
   const clearRecording = useCallback(() => {
     // Use ref to reference latest values (Stabilize dependency array)
     if (mediaRecorderRef.current && isRecordingRef.current) {
+      // Flag so onstop discards the recording rather than finalizing a blob.
+      isClearingRef.current = true;
       mediaRecorderRef.current.stop();
     }
     audioChunksRef.current = [];
