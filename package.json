@@ -6,11 +6,11 @@
   "author": "semanticist21",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/semanticist21/react-audio-waveform.git"
+    "url": "git+https://github.com/semanticist21/react-audio-wavekit.git"
   },
   "homepage": "https://react-audio-wavekit.netlify.app",
   "bugs": {
-    "url": "https://github.com/semanticist21/react-audio-waveform/issues"
+    "url": "https://github.com/semanticist21/react-audio-wavekit/issues"
   },
   "keywords": [
     "react",
