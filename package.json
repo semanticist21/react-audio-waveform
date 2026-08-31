@@ -1,6 +1,6 @@
 {
   "name": "react-audio-wavekit",
-  "version": "0.2.42",
+  "version": "0.2.43",
   "description": "React component library for audio waveform visualization and live recording",
   "license": "CC0-1.0",
   "author": "semanticist21",
@@ -74,7 +74,7 @@
     "@storybook/addon-docs": "^10.5.10",
     "@storybook/react": "^10.5.10",
     "@tailwindcss/postcss": "^4.3.3",
-    "@testing-library/react": "^16.3.2",
+    "@testing-library/react": "^16.3.3",
     "@types/node": "24.10.1",
     "@types/react": "19.2.16",
     "@types/react-dom": "19.2.3",
